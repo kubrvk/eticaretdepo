@@ -20,8 +20,8 @@ Build çıktısı `dist` klasörüne üretilir ve Firebase Hosting bu klasörü 
 ## Firebase deploy ayarı
 
 1. Firebase Console'da bir proje oluştur.
-2. `.firebaserc` dosyasındaki `YOUR_FIREBASE_PROJECT_ID` değerini Firebase proje ID'n ile değiştir.
-3. `.github/workflows/firebase-hosting.yml` içindeki `projectId` değerini aynı proje ID ile değiştir.
+2. Firebase proje ID'si olarak `eticaretdepo` kullan veya bu değer doluysa `.firebaserc` dosyasındaki değeri kendi proje ID'n ile değiştir.
+3. `.github/workflows/firebase-hosting.yml` içindeki `projectId` değerini aynı proje ID ile eşleştir.
 4. Firebase servis hesabı JSON'unu GitHub repository secrets içine `FIREBASE_SERVICE_ACCOUNT` adıyla ekle.
 5. Kod `main` branch'ine push edilince GitHub Actions otomatik build alır ve Firebase Hosting'e deploy eder.
 
