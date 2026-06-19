@@ -78,25 +78,6 @@ The typical order lifecycle is:
 
 Orders can also be removed from the active workflow and archived. Archived orders remain recoverable from the admin panel.
 
-```mermaid
-flowchart TD
-    A["User / Dealer Login"] --> B["Browse Products"]
-    B --> C["Add to Cart"]
-    C --> D{"Authenticated?"}
-    D -- "No" --> E["Login / Register"]
-    D -- "Yes" --> F{"Profile Complete?"}
-    F -- "No" --> G["Account Page"]
-    F -- "Yes" --> H["Create Order"]
-    H --> I["Admin Operations Panel"]
-    I --> J["Approve Order"]
-    J --> K["Register Payment"]
-    K --> L["Send to Warehouse"]
-    L --> M["Prepare / Pack"]
-    M --> N["Ship"]
-    N --> O["Delivered"]
-    I --> P["Archive"]
-    P --> Q["Restore"]
-```
 
 ---
 
