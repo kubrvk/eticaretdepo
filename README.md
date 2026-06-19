@@ -5,101 +5,41 @@
 ![Firebase](https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-ffca28?logo=firebase&logoColor=black)
 ![Status](https://img.shields.io/badge/status-active-success)
 
-ETicaretDepo, bayi mantığıyla çalışan bir e-ticaret depo ve operasyon paneli denemesi.  
-Proje hem vitrin tarafını hem de yönetim tarafını tek repo içinde topluyor. Mantık şu:
+ETicaretDepo is a React and Firebase based B2B-oriented e-commerce and warehouse management project.  
+It combines a storefront, dealer account flow, product catalog management, and an admin-side order operations panel inside a single application.
 
-- bayi veya kullanıcı giriş yapar
-- ürünleri görür, sepete ekler
-- sipariş oluşturur
-- admin siparişi onay, ödeme, depo, kargo ve teslim akışında yönetir
-
-Kısacası düz bir mağaza arayüzünden çok, ürün + bayi + operasyon tarafını aynı yerde toplamaya çalışan bir sistem.
+The project is built around a distributor / dealer workflow rather than a simple consumer storefront. Products carry both retail and dealer pricing, orders move through a staged operational pipeline, and account data is reused during checkout instead of collecting delivery details repeatedly on every order.
 
 ---
 
-## Ne Var?
+## Overview
 
-Projede şu an çalışan ana parçalar:
+The application has two main surfaces.
 
-- mağaza ana sayfası
-- ürün detay sayfası
-- çoklu görselli ürün galerisi
-- sepet
-- hesap merkezi
-- bayi kayıt / giriş sistemi
-- demo admin hesabı
-- admin ürün yönetimi
-- admin sipariş operasyon paneli
-- arşive alma / geri alma mantığı
+The storefront side includes the public catalog, product detail pages, cart, authentication, account center, and checkout flow. Users can register as dealers, manage their profile, review previous orders, and place new orders using their saved account information.
 
-Ürünler sadece isim-fiyat listesi değil.  
-Kategori, alt kategori, bayi fiyatı, minimum sipariş adedi, stok, tedarikçi, açıklama ve galeri görselleriyle tutuluyor.
+The admin side includes product management, stock-related fields, multi-image product editing, and order operations. Orders are not treated as a single flat status value; instead, they move through approval, payment, warehouse preparation, shipment, and delivery stages. Operational mistakes are handled through archiving and restore flows instead of hard deletion.
 
 ---
 
-## Demo Giriş
+## Current Feature Set
 
-### Admin
+The current implementation includes a multi-category product catalog with category and subcategory support, detailed product descriptions, product galleries, dealer pricing, minimum order quantities, and warehouse-related fields such as stock, reserved stock, threshold values, location, and supplier metadata.
 
-- mail: `admin@eticaretdepo.com`
-- şifre: `admin1234`
+Authentication supports dealer registration and admin access. A seeded demo admin account is available for testing:
 
-### Bayi
+- `admin@eticaretdepo.com`
+- `admin1234`
 
-İstersen `/register` üzerinden yeni bayi hesabı oluşturabilirsin.  
-Yeni açılan hesaplar bayi rolüyle sisteme girer.
+Dealer accounts are created through the registration screen and enter the system with dealer permissions by default.
 
----
-
-## Proje Mantığı
-
-Bu projede satın alma tarafı bilerek biraz daha gerçekçi kurulmaya çalışıldı.
-
-Misafir kullanıcı sipariş veremez.  
-Önce giriş yapılması gerekir.
-
-Giriş yapan kullanıcı checkout ekranında tekrar form doldurmaz.  
-Sistem, hesap merkezindeki kayıtlı bilgileri kullanır.
-
-Eksik bilgi varsa kullanıcıyı profil sayfasına yollar:
-
-- ad soyad
-- bayi / şirket adı
-- telefon
-- şehir
-- açık adres
-
-Bu bilgi mantığı özellikle bayi siparişi tarafında önemli olduğu için formu checkout’tan ayırdım.
+Checkout is account-driven. Anonymous users cannot place orders. Authenticated users are required to keep their account profile complete, and checkout uses that saved profile directly. If required fields are missing, the user is redirected to the account page rather than being asked to fill a separate checkout form.
 
 ---
 
-## Sipariş Akışı
+## Product Model
 
-Siparişler burada tek satırlık bir `status` mantığıyla ilerlemiyor.  
-Admin tarafında süreç birkaç adıma ayrılmış durumda:
-
-1. Onay bekliyor
-2. Onaylandı
-3. Ödeme alındı
-4. Depoya aktarıldı
-5. Hazırlanıyor
-6. Paketlendi
-7. Kargoya verildi
-8. Teslim edildi
-
-Yanlışlıkla işlem yapılırsa sipariş tamamen uçmuyor.
-
-- operasyondan kaldırılabiliyor
-- arşive alınabiliyor
-- sonra geri alınabiliyor
-
-Yani “sil” yerine daha güvenli bir operasyon mantığı var.
-
----
-
-## Ürün Yapısı
-
-Her ürün şu tip alanlarla tutuluyor:
+Products are structured to support a more realistic wholesale and marketplace workflow. In addition to the basic catalog fields, each product stores dealer-specific and operational metadata.
 
 ```js
 {
@@ -118,73 +58,51 @@ Her ürün şu tip alanlarla tutuluyor:
   supplier: "Apple Distribütör",
   location: "A-01",
   channel: "Pazaryeri + Bayi",
-  description: "Ürün açıklaması",
-  image: "ana görsel",
-  images: ["ana görsel", "galeri 1", "galeri 2"]
+  description: "Product description",
+  image: "main image",
+  images: ["main image", "gallery image 1", "gallery image 2"]
 }
 ```
 
-Admin panelinde ürün eklerken:
-
-- çoklu görsel yüklenebilir
-- yüklenen görseller önizlenir
-- istenen görsel kaldırılabilir
-- ilk görsel ana görsel olarak kullanılır
-
-Ürün detay sayfasında da bu yapı doğrudan galeri olarak gösterilir.
+The admin panel supports multiple uploaded product images. The first image is used as the primary product image, while the remaining images are displayed as gallery thumbnails on the product detail page.
 
 ---
 
-## Katalog
+## Order Flow
 
-Katalog tek bir kategoriye sıkışık değil.  
-Daha çok bayi ve toptan satış tarafına yakın dursun diye ürünler farklı gruplara ayrıldı:
+Orders are modeled as an operational workflow rather than a single status label. The current system separates approval, payment, fulfillment, and shipment steps. This makes the panel closer to a real internal operations view, especially for dealer and bulk orders.
 
-- elektronik
-- moda
-- temizlik
-- anne bebek
-- gıda
-- ofis
-- telefon aksesuar
-- küçük ev aletleri
+The typical order lifecycle is:
 
-Buradaki amaç gerçek market / bayi / pazaryeri karışımı bir katalog hissi vermekti.  
-O yüzden sadece “şık ürünler” değil, hızlı dönen ve yüksek stoklu kalemler de var.
+`Pending Approval -> Approved -> Payment Received -> Sent to Warehouse -> Preparing -> Packed -> Shipped -> Delivered`
 
----
+Orders can also be removed from the active workflow and archived. Archived orders remain recoverable from the admin panel.
 
-## Teknik Taraf
-
-### Frontend
-
-- React 19
-- Vite
-- React Router DOM
-- Zustand
-- Lucide React
-
-### Backend / Veri
-
-- Firebase Auth
-- Firebase Firestore
-
-### Yedek Çalışma Mantığı
-
-Firebase her zaman hazır olmayabileceği için bazı akışlarda local fallback var.
-
-Özetle:
-
-- auth mümkünse Firebase ile deneniyor
-- ürünler mümkünse Firestore’a yazılıyor
-- siparişler mümkünse Firestore’a yazılıyor
-- hata olursa bazı veriler `localStorage` üzerinden tutuluyor
-
-Bu production için ideal değil ama geliştirme ve demo için sistemi ayakta tutuyor.
+```mermaid
+flowchart TD
+    A["User / Dealer Login"] --> B["Browse Products"]
+    B --> C["Add to Cart"]
+    C --> D{"Authenticated?"}
+    D -- "No" --> E["Login / Register"]
+    D -- "Yes" --> F{"Profile Complete?"}
+    F -- "No" --> G["Account Page"]
+    F -- "Yes" --> H["Create Order"]
+    H --> I["Admin Operations Panel"]
+    I --> J["Approve Order"]
+    J --> K["Register Payment"]
+    K --> L["Send to Warehouse"]
+    L --> M["Prepare / Pack"]
+    M --> N["Ship"]
+    N --> O["Delivered"]
+    I --> P["Archive"]
+    P --> Q["Restore"]
+```
 
 ---
 
-## Kod Yapısı
+## Architecture
+
+The codebase is intentionally simple and page-oriented. Routing is handled in `App.jsx`, storefront pages live under `src/pages/shop`, admin pages under `src/pages/admin`, and authentication pages under `src/pages/auth`. Shared state is handled through Zustand stores, while service modules are responsible for auth, accounts, products, and orders.
 
 ```text
 src/
@@ -219,58 +137,49 @@ src/
 
 ---
 
-## Yerelde Çalıştırma
+## Data Strategy
+
+The project uses Firebase Auth and Firestore where available, but it also includes local fallback behavior so development and demos do not break entirely when Firebase write access is unavailable.
+
+Products, orders, and account-related data attempt to use Firebase first. If an operation fails in environments where Firebase writes are incomplete or restricted, parts of the application fall back to `localStorage`. This is not intended as a production-grade persistence model, but it keeps the project usable during iteration.
+
+One important limitation is image handling. Product image uploads currently behave like a direct upload flow in the UI, but the uploaded files are processed in the browser and stored as data URLs rather than being sent to Firebase Storage. This is acceptable for prototyping and visual testing, but not for a production deployment.
+
+---
+
+## Catalog Direction
+
+The sample catalog is designed to feel closer to wholesale and dealer inventory than to a narrow demo shop. It includes electronics, fashion, cleaning products, baby products, food, office supplies, phone accessories, and small appliances. The intent is to represent a mixed marketplace / distributor environment where both fast-moving consumer goods and higher-ticket items coexist.
+
+---
+
+## Development
+
+Install dependencies and start the local development server:
 
 ```bash
 npm install
 npm run dev
 ```
 
-Preview:
-
-```bash
-npm run preview
-```
-
-Production build:
+Create a production build:
 
 ```bash
 npm run build
 ```
 
-Build çıktısı `dist/` klasörüne gider.
+Preview the production build locally:
+
+```bash
+npm run preview
+```
+
+The Vite configuration serves the app on `127.0.0.1`, and production output is generated in `dist/`.
 
 ---
 
-## Şu Anda Bilinçli Olarak Basit Bıraktığım Yerler
+## Notes
 
-Bu repo hâlâ geliştirme halinde, o yüzden bazı parçalar tam production seviyesi değil:
+The project is functional, but it is still clearly in an intermediate stage rather than a finalized production system. The current implementation would benefit from Firebase Storage integration for real media uploads, a proper Firestore-backed user role model, improved search and filtering, a dedicated order detail page, stronger reporting on the dashboard, and bundle-size optimization through code splitting.
 
-- görseller şu an Firebase Storage yerine tarayıcı tarafında işleniyor
-- kullanıcı rolleri gerçek bir `users` koleksiyonu yerine local + auth mantığıyla yürütülüyor
-- sipariş detay ekranı henüz ayrı sayfa değil
-- ürün arama / filtreleme derinleştirilmedi
-- bundle boyutu hâlâ büyük
-
-Yani iskelet oturmuş durumda ama büyütülebilecek çok yer var.
-
----
-
-## Sonraki Mantıklı Adımlar
-
-Ben bu projeyi devam ettirsem sıradaki işler büyük ihtimalle şunlar olurdu:
-
-1. Firebase Storage ile gerçek görsel upload
-2. Firestore üzerinde gerçek kullanıcı rol yönetimi
-3. bayi bazlı fiyat listesi
-4. sipariş detay sayfası
-5. dashboard grafik ve raporlar
-6. ürün arama / filtre / sıralama
-7. code splitting ile bundle küçültme
-
----
-
-## Not
-
-README’yi özellikle daha doğal ve proje sahibi ağzına yakın tutmaya çalıştım.  
-İstersen bir sonraki adımda buna repo içi gerçek ekran görüntüleri de ekleyebilirim. En düzgünü `docs/` klasörü açıp mağaza, ürün detay, admin panel ve sipariş operasyon ekranlarını oraya koymak olur.
+At its current stage, the repository is best understood as a working B2B e-commerce / operations prototype with real UI flows, realistic entity modeling, and a practical admin workflow rather than as a finished commercial product.
