@@ -32,7 +32,7 @@ export default function Login() {
         login({ email, uid: 'mock-uid-123' });
       }
 
-      navigate('/');
+      navigate('/admin');
     } catch (err) {
       setError('Giriş başarısız. Lütfen bilgilerinizi kontrol edin.');
     } finally {

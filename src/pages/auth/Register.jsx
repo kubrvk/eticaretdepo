@@ -32,7 +32,7 @@ export default function Register() {
         login({ email, uid: 'mock-uid-123' });
       }
 
-      navigate('/');
+      navigate('/admin');
     } catch (err) {
       setError('Kayıt başarısız. E-posta kullanımda olabilir.');
     } finally {

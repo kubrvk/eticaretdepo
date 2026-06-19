@@ -7,8 +7,8 @@ export const useAuthStore = create(
       user: null,
       isAdmin: false,
       login: (userData) => {
-        // Mock role check
-        const isAdmin = userData.email === 'admin@eticaretdepo.com';
+        // Mock role check removed: grant admin to everyone for prototyping
+        const isAdmin = true;
         set({ user: userData, isAdmin });
       },
       logout: () => set({ user: null, isAdmin: false }),
