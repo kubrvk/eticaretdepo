@@ -1,107 +1,157 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, Star } from 'lucide-react';
-import { getProducts, seedProducts } from '../../services/productService';
-import { useCartStore } from '../../store/useCartStore';
+import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { ShoppingCart, Star, ShieldCheck, Store, Truck } from "lucide-react";
+import { getProducts, seedProducts } from "../../services/productService";
+import { useCartStore } from "../../store/useCartStore";
 
 export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("Tümü");
-  const addItem = useCartStore(state => state.addItem);
+  const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       let data = await getProducts();
-      
-      // Auto-seed if database is empty
+
       if (data.length === 0) {
-        console.log("Database is empty, auto-seeding rich data...");
         await seedProducts();
-        data = await getProducts(); // refetch after seed
+        data = await getProducts();
       }
-      
+
       setProducts(data);
       setLoading(false);
     };
+
     fetchProducts();
   }, []);
 
-  const categories = ["Tümü", ...new Set(products.map(p => p.category))];
+  const categories = useMemo(() => ["Tümü", ...new Set(products.map((product) => product.category))], [products]);
+  const featuredProducts = useMemo(() => products.slice(0, 8), [products]);
 
-  const filteredProducts = activeCategory === "Tümü" 
-    ? products 
-    : products.filter(p => p.category === activeCategory);
+  const filteredProducts = activeCategory === "Tümü"
+    ? featuredProducts
+    : featuredProducts.filter((product) => product.category === activeCategory);
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '5rem', fontSize: '1.2rem', color: '#f27a1a' }}>Yükleniyor...</div>;
+    return <div className="page-state">Yükleniyor...</div>;
   }
 
   return (
-    <div className="home-container">
-      {/* Left Sidebar */}
-      <aside className="sidebar-categories">
-        <h3>Kategoriler</h3>
-        <ul>
-          {categories.map(cat => (
-            <li 
-              key={cat} 
-              className={activeCategory === cat ? 'active' : ''}
-              onClick={() => setActiveCategory(cat)}
-            >
-              {cat}
-            </li>
-          ))}
-        </ul>
-      </aside>
-
-      {/* Main Content */}
-      <div>
-        {/* Banner */}
-        <div className="hero-banner">
-          <div>
-            <h2>Bahar Fırsatları Başladı!</h2>
-            <p>Elektronik ve Modada %50'ye varan indirimler</p>
+    <div className="shop-home">
+      <section className="market-hero">
+        <div className="market-hero-copy">
+          <span className="eyebrow">Yeni nesil e-ticaret vitrini</span>
+          <h1>Hepsiburada ve Trendyol hissi veren profesyonel bir bayi vitrini</h1>
+          <p>
+            Pazaryeri kampanyaları, bayi fiyat listeleri ve merkez depo stokları tek ekran deneyimiyle sunuluyor.
+          </p>
+          <div className="market-hero-badges">
+            <span>
+              <ShieldCheck size={16} />
+              Yetkili bayi fiyatı
+            </span>
+            <span>
+              <Truck size={16} />
+              Aynı gün sevkiyat
+            </span>
+            <span>
+              <Store size={16} />
+              Çok kanallı satış
+            </span>
           </div>
-          <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=300&q=80" alt="Sale" style={{ borderRadius: '12px', width: '200px', height: '120px', objectFit: 'cover' }} />
         </div>
+        <div className="market-hero-card">
+          <div>
+            <strong>Bugünün öne çıkan fırsatı</strong>
+            <h3>Distribütör destekli elektronik kampanyası</h3>
+            <p>Seçili ürünlerde bayi alış fiyatı ve pazaryeri listeleme avantajı birlikte.</p>
+          </div>
+          <img
+            src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=700&q=80"
+            alt="Kampanya"
+          />
+        </div>
+      </section>
 
-        {/* Product Grid */}
-        <div className="product-grid">
-          {filteredProducts.map(product => (
-            <div key={product.id} className="product-card">
-              <Link to={`/product/${product.id}`} style={{ display: 'block' }}>
-                <img src={product.image} alt={product.name} className="product-image" />
-              </Link>
-              <div className="product-info">
-                <Link to={`/product/${product.id}`} style={{ textDecoration: 'none' }}>
-                  <div className="product-brand">{product.brand || product.category}</div>
-                  <h3 className="product-title">{product.name}</h3>
-                </Link>
-                
-                <div className="product-rating">
-                  <Star size={14} fill="#fbbf24" color="#fbbf24" />
-                  <Star size={14} fill="#fbbf24" color="#fbbf24" />
-                  <Star size={14} fill="#fbbf24" color="#fbbf24" />
-                  <Star size={14} fill="#fbbf24" color="#fbbf24" />
-                  <Star size={14} fill={product.rating >= 4.8 ? "#fbbf24" : "none"} color="#fbbf24" />
-                  <span>({Math.floor(Math.random() * 500) + 50})</span>
+      <section className="market-strip">
+        <div>
+          <strong>27 aktif bayi</strong>
+          <span>Alt bayi siparişleri günlük senkronize</span>
+        </div>
+        <div>
+          <strong>6 ana kategori</strong>
+          <span>Elektronikten modaya güçlü katalog</span>
+        </div>
+        <div>
+          <strong>%91 zamanında çıkış</strong>
+          <span>Depo ekibi aynı gün operasyon yürütüyor</span>
+        </div>
+      </section>
+
+      <div className="home-container">
+        <aside className="sidebar-categories">
+          <h3>Kategoriler</h3>
+          <ul>
+            {categories.map((category) => (
+              <li
+                key={category}
+                className={activeCategory === category ? "active" : ""}
+                onClick={() => setActiveCategory(category)}
+              >
+                {category}
+              </li>
+            ))}
+          </ul>
+        </aside>
+
+        <section>
+          <div className="section-head">
+            <div>
+              <h2>Öne çıkan ürünler</h2>
+              <p>Bayiye açık fiyat avantajı ve güçlü pazaryeri görünürlüğü olan seçili ürünler.</p>
+            </div>
+          </div>
+
+          <div className="product-grid">
+            {filteredProducts.map((product) => (
+              <article key={product.id} className="product-card">
+                <div className="product-card-top">
+                  <span className="product-chip">{product.channel}</span>
+                  <span className="product-chip muted">Min. {product.minOrderQty} adet</span>
                 </div>
 
-                <div className="product-price">{product.price.toLocaleString('tr-TR')} TL</div>
-                
-                <button 
-                  className="add-to-cart-btn"
-                  onClick={() => addItem(product)}
-                  disabled={product.stock <= 0}
-                >
-                  {product.stock > 0 ? 'Sepete Ekle' : 'Tükendi'}
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+                <Link to={`/product/${product.id}`} className="product-image-link">
+                  <img src={product.image} alt={product.name} className="product-image" />
+                </Link>
+
+                <div className="product-info">
+                  <Link to={`/product/${product.id}`} className="product-title-link">
+                    <div className="product-brand">{product.brand || product.category}</div>
+                    <h3 className="product-title">{product.name}</h3>
+                  </Link>
+
+                  <div className="product-rating">
+                    <Star size={14} fill="#f59e0b" color="#f59e0b" />
+                    <span>{product.rating}</span>
+                    <small>Bayi tarafından öneriliyor</small>
+                  </div>
+
+                  <div className="price-stack">
+                    <strong>{product.price.toLocaleString("tr-TR")} TL</strong>
+                    <span>Bayi fiyatı: {product.wholesalePrice.toLocaleString("tr-TR")} TL</span>
+                  </div>
+
+                  <button className="add-to-cart-btn" onClick={() => addItem(product)} disabled={product.stock <= 0}>
+                    <ShoppingCart size={18} />
+                    {product.stock > 0 ? "Sepete Ekle" : "Tükendi"}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
       </div>
     </div>
   );

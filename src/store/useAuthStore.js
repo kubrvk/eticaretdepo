@@ -1,20 +1,29 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 export const useAuthStore = create(
   persist(
     (set) => ({
       user: null,
+      role: "guest",
       isAdmin: false,
       login: (userData) => {
-        // Mock role check removed: grant admin to everyone for prototyping
-        const isAdmin = true;
-        set({ user: userData, isAdmin });
+        const role = userData?.role || "customer";
+        set({
+          user: userData,
+          role,
+          isAdmin: role === "admin",
+        });
       },
-      logout: () => set({ user: null, isAdmin: false }),
+      logout: () =>
+        set({
+          user: null,
+          role: "guest",
+          isAdmin: false,
+        }),
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
     }
   )
 );

@@ -1,59 +1,66 @@
-import React from 'react';
-import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, User, Search, Settings } from 'lucide-react';
-import { useCartStore } from '../../store/useCartStore';
-import { useAuthStore } from '../../store/useAuthStore';
-import './shop.css';
+import React from "react";
+import { Outlet, Link, useNavigate } from "react-router-dom";
+import { ShoppingCart, User, Search, Settings, Store, ShieldCheck, Truck } from "lucide-react";
+import { useCartStore } from "../../store/useCartStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import "./shop.css";
 
 export default function ShopLayout() {
   const { items } = useCartStore();
-  const { user, isAdmin } = useAuthStore();
+  const { user, isAdmin, role } = useAuthStore();
   const navigate = useNavigate();
-  
-  const cartItemCount = items.reduce((acc, item) => acc + item.quantity, 0);
+
+  const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
+  const accountLabel = role === "admin" ? "Admin Hesabı" : role === "dealer" ? "Bayi Hesabı" : "Hesabım";
 
   return (
     <div className="shop-layout">
+      <div className="shop-top-strip">
+        <span>
+          <ShieldCheck size={14} />
+          Yetkili bayi fiyatları ve pazaryeri operasyonu tek sistemde
+        </span>
+        <span>
+          <Truck size={14} />
+          Aynı gün kargo destekli depo akışı
+        </span>
+      </div>
+
       <header className="shop-header">
         <Link to="/" className="shop-brand">
-          DepoShop
+          <Store size={24} />
+          DepoMarket
         </Link>
-        
+
         <div className="shop-search">
           <Search size={20} className="search-icon" />
-          <input type="text" placeholder="Aradığınız ürün, kategori veya markayı yazınız" />
+          <input type="text" placeholder="Ürün, kategori, marka veya bayi fiyatı ara" />
         </div>
 
         <nav className="shop-nav">
           {user ? (
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <div className="nav-icon-block">
               <User size={20} />
-              <span style={{ fontSize: '0.75rem', marginTop: '4px' }}>Hesabım</span>
+              <span>{accountLabel}</span>
             </div>
           ) : (
-            <Link to="/login">
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <User size={20} />
-                <span style={{ fontSize: '0.75rem', marginTop: '4px' }}>Giriş Yap</span>
-              </div>
+            <Link to="/login" className="nav-icon-block">
+              <User size={20} />
+              <span>Giriş Yap</span>
             </Link>
           )}
 
-          {isAdmin && (
-            <button onClick={() => navigate('/admin')}>
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <Settings size={20} />
-                <span style={{ fontSize: '0.75rem', marginTop: '4px' }}>Admin</span>
-              </div>
+          {isAdmin ? (
+            <button type="button" onClick={() => navigate("/admin")} className="nav-icon-block">
+              <Settings size={20} />
+              <span>Admin</span>
             </button>
-          )}
+          ) : null}
 
           <Link to="/cart" className="cart-icon-wrapper">
             <ShoppingCart size={24} />
-            {cartItemCount > 0 && (
-              <span className="cart-badge">{cartItemCount}</span>
-            )}
-            <span style={{ fontSize: '0.75rem', marginTop: '28px', position: 'absolute', whiteSpace: 'nowrap', left: '-50%' }}>Sepetim</span>
+            {cartItemCount > 0 ? <span className="cart-badge">{cartItemCount}</span> : null}
+            <span>Sepetim</span>
           </Link>
         </nav>
       </header>
@@ -61,14 +68,17 @@ export default function ShopLayout() {
       <main className="shop-main">
         <Outlet />
       </main>
-      
-      <footer style={{ textAlign: 'center', padding: '3rem', color: '#6b7280', fontSize: '0.875rem', backgroundColor: 'white', marginTop: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginBottom: '1rem' }}>
-          <Link to="/" style={{ color: '#6b7280', textDecoration: 'none' }}>Hakkımızda</Link>
-          <Link to="/" style={{ color: '#6b7280', textDecoration: 'none' }}>Yardım</Link>
-          <Link to="/" style={{ color: '#6b7280', textDecoration: 'none' }}>İletişim</Link>
+
+      <footer className="shop-footer">
+        <div>
+          <strong>DepoMarket</strong>
+          <p>Bayi ağı, pazaryeri yönetimi ve güçlü e-ticaret vitrini bir arada.</p>
         </div>
-        &copy; 2026 DepoShop E-Commerce. Tüm hakları saklıdır.
+        <div className="shop-footer-links">
+          <Link to="/">Kurumsal</Link>
+          <Link to="/">Yardım Merkezi</Link>
+          <Link to="/">İletişim</Link>
+        </div>
       </footer>
     </div>
   );
