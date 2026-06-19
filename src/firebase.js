@@ -3,12 +3,12 @@ import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCu9Xa-mmTzK9_mrH5YZPuUtQIEAzUvmCE",
-  authDomain: "eticaretdepo.firebaseapp.com",
-  projectId: "eticaretdepo",
-  storageBucket: "eticaretdepo.firebasestorage.app",
-  messagingSenderId: "125911679804",
-  appId: "1:125911679804:web:f0e0156efa41bfd6ed1439"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
