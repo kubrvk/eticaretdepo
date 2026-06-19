@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FilePenLine, PackageCheck, PlusCircle, Trash2 } from "lucide-react";
+import { FilePenLine, PackageCheck, PlusCircle, Trash2, Upload } from "lucide-react";
 import { addProduct, deleteProduct, getProducts, updateProduct } from "../../services/productService";
 
 const initialForm = {
@@ -7,6 +7,7 @@ const initialForm = {
   sku: "",
   brand: "",
   category: "Elektronik",
+  subcategory: "",
   price: "",
   wholesalePrice: "",
   stock: "",
@@ -16,8 +17,8 @@ const initialForm = {
   supplier: "",
   minOrderQty: "1",
   channel: "B2B + Pazaryeri",
-  image: "",
   description: "",
+  images: [],
 };
 
 const mapProductToForm = (product) => ({
@@ -25,6 +26,7 @@ const mapProductToForm = (product) => ({
   sku: product.sku || "",
   brand: product.brand || "",
   category: product.category || "",
+  subcategory: product.subcategory || "",
   price: String(product.price || ""),
   wholesalePrice: String(product.wholesalePrice || ""),
   stock: String(product.stock || ""),
@@ -34,9 +36,33 @@ const mapProductToForm = (product) => ({
   supplier: product.supplier || "",
   minOrderQty: String(product.minOrderQty || 1),
   channel: product.channel || "",
-  image: product.image || "",
   description: product.description || "",
+  images: product.images || (product.image ? [product.image] : []),
 });
+
+const readImageFile = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxSize = 1200;
+        const ratio = Math.min(maxSize / image.width, maxSize / image.height, 1);
+        canvas.width = Math.round(image.width * ratio);
+        canvas.height = Math.round(image.height * ratio);
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      image.onerror = reject;
+      image.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+
+const readFilesAsDataUrls = async (files) => Promise.all(Array.from(files).map((file) => readImageFile(file)));
 
 export default function ProductManagement() {
   const [products, setProducts] = useState([]);
@@ -64,6 +90,27 @@ export default function ProductManagement() {
     setForm((current) => ({ ...current, [name]: value }));
   };
 
+  const handleImageChange = async (event) => {
+    const files = event.target.files;
+    if (!files?.length) return;
+    const images = await readFilesAsDataUrls(files);
+    setForm((current) => ({
+      ...current,
+      images: [...current.images, ...images],
+    }));
+    event.target.value = "";
+  };
+
+  const removeImage = (imageIndex) => {
+    if (!window.confirm("Bu görseli kaldırmak istiyor musunuz?")) {
+      return;
+    }
+    setForm((current) => ({
+      ...current,
+      images: current.images.filter((_, index) => index !== imageIndex),
+    }));
+  };
+
   const resetForm = () => {
     setEditingId("");
     setForm(initialForm);
@@ -78,6 +125,7 @@ export default function ProductManagement() {
     threshold: Number(form.threshold),
     minOrderQty: Number(form.minOrderQty),
     velocity: Number(form.stock) <= Number(form.threshold) ? "Kritik" : "Normal",
+    images: form.images.length ? form.images : [],
   });
 
   const handleSubmit = async (event) => {
@@ -87,6 +135,10 @@ export default function ProductManagement() {
     setError("");
 
     try {
+      if (form.images.length === 0) {
+        throw new Error("IMAGE_REQUIRED");
+      }
+
       if (editingId) {
         await updateProduct(editingId, buildPayload());
         setMessage("Ürün güncellendi.");
@@ -118,9 +170,7 @@ export default function ProductManagement() {
   };
 
   const handleDelete = async (product) => {
-    const confirmed = window.confirm(`"${product.name}" ürününü silmek istiyor musunuz?`);
-    if (!confirmed) return;
-
+    if (!window.confirm(`"${product.name}" ürününü silmek istiyor musunuz?`)) return;
     setDeletingId(product.id);
     setMessage("");
     setError("");
@@ -147,7 +197,7 @@ export default function ProductManagement() {
         <div className="panel-head compact">
           <div>
             <h2>{editingId ? "Ürünü düzenle" : "Yeni ürün ekle"}</h2>
-            <p>Gerçek bayi sistemlerinde ürün kartı tek formdan eklenir ve aynı formdan revize edilir.</p>
+            <p>Ürün kartı, kategori, alt kategori, açıklama ve galeri görselleriyle tek formdan yönetilir.</p>
           </div>
           <span className="pill trendyol-pill">
             <PlusCircle size={15} />
@@ -160,6 +210,7 @@ export default function ProductManagement() {
           <input name="sku" value={form.sku} onChange={handleChange} placeholder="SKU kodu" required />
           <input name="brand" value={form.brand} onChange={handleChange} placeholder="Marka" required />
           <input name="category" value={form.category} onChange={handleChange} placeholder="Kategori" required />
+          <input name="subcategory" value={form.subcategory} onChange={handleChange} placeholder="Alt kategori" required />
           <input name="price" value={form.price} onChange={handleChange} placeholder="Perakende fiyat" type="number" min="0" required />
           <input name="wholesalePrice" value={form.wholesalePrice} onChange={handleChange} placeholder="Bayi fiyatı" type="number" min="0" required />
           <input name="stock" value={form.stock} onChange={handleChange} placeholder="Stok" type="number" min="0" required />
@@ -169,8 +220,26 @@ export default function ProductManagement() {
           <input name="supplier" value={form.supplier} onChange={handleChange} placeholder="Tedarikçi / distribütör" required />
           <input name="minOrderQty" value={form.minOrderQty} onChange={handleChange} placeholder="Minimum bayi siparişi" type="number" min="1" required />
           <input name="channel" value={form.channel} onChange={handleChange} placeholder="Satış kanalı" required />
-          <input name="image" value={form.image} onChange={handleChange} placeholder="Ürün görsel URL" required />
           <textarea name="description" value={form.description} onChange={handleChange} placeholder="Ürün açıklaması" rows="4" required />
+
+          <div className="product-upload-box">
+            <label className="upload-trigger">
+              <Upload size={18} />
+              Görselleri yükle
+              <input type="file" accept="image/*" multiple onChange={handleImageChange} hidden />
+            </label>
+            <p>Link yerine doğrudan dosya yükleyin. İlk görsel ana resim olarak kullanılır.</p>
+            <div className="upload-preview-grid">
+              {form.images.map((image, index) => (
+                <div key={`${image}-${index}`} className="upload-preview-card">
+                  <img src={image} alt={`Ürün görseli ${index + 1}`} />
+                  <button type="button" className="danger-button table-action-button" onClick={() => removeImage(index)}>
+                    Kaldır
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
 
           <div className="form-actions">
             <div>
@@ -178,7 +247,11 @@ export default function ProductManagement() {
               {error ? <p className="form-error">{error}</p> : null}
             </div>
             <div className="inline-actions">
-              {editingId ? <button type="button" className="secondary-button" onClick={resetForm}>İptal</button> : null}
+              {editingId ? (
+                <button type="button" className="secondary-button" onClick={resetForm}>
+                  İptal
+                </button>
+              ) : null}
               <button type="submit" disabled={saving} className="trendyol-submit-button">
                 {saving ? "Kaydediliyor..." : editingId ? "Ürünü Güncelle" : "Ürünü Kaydet"}
               </button>
@@ -191,7 +264,7 @@ export default function ProductManagement() {
         <div className="panel-head">
           <div>
             <h2>Ürün ve bayi kataloğu</h2>
-            <p>Bayi fiyatı, stok ve kanal bilgisiyle ürünler burada yönetilir.</p>
+            <p>Bayi fiyatı, alt kategori, stok ve kanal bilgisiyle ürünler burada yönetilir.</p>
           </div>
           <button type="button" className="accent-soft-button">
             <PackageCheck size={17} />
@@ -204,7 +277,7 @@ export default function ProductManagement() {
             <thead>
               <tr>
                 <th>Ürün</th>
-                <th>Kanal</th>
+                <th>Kategori</th>
                 <th>Stok</th>
                 <th>Perakende</th>
                 <th>Bayi</th>
@@ -220,8 +293,13 @@ export default function ProductManagement() {
                       <strong>{product.name}</strong>
                       <span>{product.brand} • {product.sku}</span>
                     </td>
-                    <td>{product.channel}</td>
-                    <td><span className={isLow ? "pill danger" : "pill success"}>{product.stock} adet</span></td>
+                    <td>
+                      <strong>{product.category}</strong>
+                      <span>{product.subcategory}</span>
+                    </td>
+                    <td>
+                      <span className={isLow ? "pill danger" : "pill success"}>{product.stock} adet</span>
+                    </td>
                     <td>{product.price.toLocaleString("tr-TR")} TL</td>
                     <td>{product.wholesalePrice.toLocaleString("tr-TR")} TL</td>
                     <td>

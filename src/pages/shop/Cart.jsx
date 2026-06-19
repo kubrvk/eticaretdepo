@@ -31,7 +31,7 @@ export default function Cart() {
 
               <div className="cart-item-info">
                 <Link to={`/product/${item.id}`}>{item.name}</Link>
-                <span>{item.brand}</span>
+                <span>{item.brand} • {item.channel}</span>
                 <strong>{item.price.toLocaleString("tr-TR")} TL</strong>
               </div>
 

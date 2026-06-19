@@ -5,6 +5,7 @@ import HomePage from './pages/shop/HomePage';
 import ProductDetail from './pages/shop/ProductDetail';
 import Cart from './pages/shop/Cart';
 import Checkout from './pages/shop/Checkout';
+import AccountPage from './pages/shop/AccountPage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import AdminLayout from './pages/admin/AdminLayout';
@@ -32,6 +33,7 @@ function App() {
           <Route path="product/:id" element={<ProductDetail />} />
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<Checkout />} />
+          <Route path="account" element={<AccountPage />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
         </Route>

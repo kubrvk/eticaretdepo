@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Warehouse } from "lucide-react";
 import { loginUser } from "../../services/authService";
+import { getDefaultAdminCredentials } from "../../services/accountService";
 import { useAuthStore } from "../../store/useAuthStore";
 
 export default function Login() {
@@ -11,6 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
+  const adminCredentials = getDefaultAdminCredentials();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -57,7 +59,7 @@ export default function Login() {
           Hesabınız yok mu? <Link to="/register" style={{ color: "#f27a1a", fontWeight: "700", textDecoration: "none" }}>Bayi hesabı oluştur</Link>
         </p>
         <p style={{ textAlign: "center", marginTop: "0.75rem", color: "#9ca3af", fontSize: "0.8rem" }}>
-          Admin giriş örneği: <strong>admin@deposhop.com</strong>
+          Demo admin: <strong>{adminCredentials.email}</strong> / <strong>{adminCredentials.password}</strong>
         </p>
       </div>
     </div>

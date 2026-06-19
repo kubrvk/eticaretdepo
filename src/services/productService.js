@@ -15,35 +15,48 @@ import { initialProducts } from "./mockData";
 const COLLECTION_NAME = "products";
 const LOCAL_PRODUCTS_KEY = "local-admin-products";
 const LOCAL_DELETED_KEY = "local-admin-deleted-products";
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80";
 
-const normalizeProduct = (product, fallbackId) => ({
-  id: product.id || fallbackId,
-  sku: product.sku || `SKU-${String(fallbackId || "").slice(0, 6).toUpperCase()}`,
-  name: product.name || "",
-  category: product.category || "Genel",
-  brand: product.brand || product.category || "Markasız",
-  stock: Number(product.stock ?? 0),
-  reserved: Number(product.reserved ?? 0),
-  threshold: Number(product.threshold ?? 5),
-  location: product.location || "Atanmadı",
-  velocity: product.velocity || "Normal",
-  price: Number(product.price ?? 0),
-  wholesalePrice: Number(product.wholesalePrice ?? product.price ?? 0),
-  minOrderQty: Number(product.minOrderQty ?? 1),
-  supplier: product.supplier || "Merkez Depo",
-  channel: product.channel || "B2B + Pazaryeri",
-  image: product.image || "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80",
-  description: product.description || "",
-  rating: Number(product.rating ?? 4.6),
-});
+const normalizeImages = (product) => {
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    return product.images;
+  }
+  if (product.image) {
+    return [product.image];
+  }
+  return [FALLBACK_IMAGE];
+};
+
+const normalizeProduct = (product, fallbackId) => {
+  const images = normalizeImages(product);
+  return {
+    id: product.id || fallbackId,
+    sku: product.sku || `SKU-${String(fallbackId || "").slice(0, 6).toUpperCase()}`,
+    name: product.name || "",
+    category: product.category || "Genel",
+    subcategory: product.subcategory || "Diğer",
+    brand: product.brand || product.category || "Markasız",
+    stock: Number(product.stock ?? 0),
+    reserved: Number(product.reserved ?? 0),
+    threshold: Number(product.threshold ?? 5),
+    location: product.location || "Atanmadı",
+    velocity: product.velocity || "Normal",
+    price: Number(product.price ?? 0),
+    wholesalePrice: Number(product.wholesalePrice ?? product.price ?? 0),
+    minOrderQty: Number(product.minOrderQty ?? 1),
+    supplier: product.supplier || "Merkez Depo",
+    channel: product.channel || "B2B + Pazaryeri",
+    image: images[0],
+    images,
+    description: product.description || "",
+    rating: Number(product.rating ?? 4.6),
+  };
+};
 
 const isBrowser = typeof window !== "undefined";
 
 const readLocalList = (key) => {
-  if (!isBrowser) {
-    return [];
-  }
-
+  if (!isBrowser) return [];
   try {
     return JSON.parse(window.localStorage.getItem(key) || "[]");
   } catch {
@@ -52,9 +65,7 @@ const readLocalList = (key) => {
 };
 
 const writeLocalList = (key, value) => {
-  if (!isBrowser) {
-    return;
-  }
+  if (!isBrowser) return;
   window.localStorage.setItem(key, JSON.stringify(value));
 };
 
@@ -73,8 +84,7 @@ const removeLocalProduct = (id) => {
 };
 
 const clearDeletedFlag = (id) => {
-  const next = getDeletedIds().filter((item) => item !== id);
-  writeLocalList(LOCAL_DELETED_KEY, next);
+  writeLocalList(LOCAL_DELETED_KEY, getDeletedIds().filter((item) => item !== id));
 };
 
 const markDeletedLocally = (id) => {
@@ -91,15 +101,10 @@ const mergeProducts = (remoteProducts) => {
   const merged = new Map();
 
   remoteProducts.forEach((product) => {
-    if (!deletedIds.has(product.id)) {
-      merged.set(product.id, product);
-    }
+    if (!deletedIds.has(product.id)) merged.set(product.id, product);
   });
-
   localProducts.forEach((product) => {
-    if (!deletedIds.has(product.id)) {
-      merged.set(product.id, product);
-    }
+    if (!deletedIds.has(product.id)) merged.set(product.id, product);
   });
 
   return Array.from(merged.values()).sort((a, b) => a.name.localeCompare(b.name, "tr"));
@@ -107,8 +112,7 @@ const mergeProducts = (remoteProducts) => {
 
 export const getProducts = async () => {
   try {
-    const productsCol = collection(db, COLLECTION_NAME);
-    const productSnapshot = await getDocs(productsCol);
+    const productSnapshot = await getDocs(collection(db, COLLECTION_NAME));
     const remoteProducts = productSnapshot.docs.map((item) => normalizeProduct(item.data(), item.id));
     return mergeProducts(remoteProducts);
   } catch (error) {
@@ -123,8 +127,7 @@ export const getProducts = async () => {
 
 export const getProductById = async (id) => {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    const docSnap = await getDoc(docRef);
+    const docSnap = await getDoc(doc(db, COLLECTION_NAME, id));
     if (docSnap.exists()) {
       return normalizeProduct(docSnap.data(), docSnap.id);
     }
@@ -133,9 +136,7 @@ export const getProductById = async (id) => {
   }
 
   const localProduct = getLocalProducts().find((product) => product.id === id);
-  if (localProduct) {
-    return localProduct;
-  }
+  if (localProduct) return localProduct;
 
   const fallback = initialProducts.find((product) => product.id === id);
   return fallback ? normalizeProduct(fallback, fallback.id) : null;
@@ -167,14 +168,14 @@ export const addProduct = async (product) => {
 };
 
 export const updateProduct = async (id, data) => {
+  const normalized = normalizeProduct(data, id);
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, data);
+    await updateDoc(doc(db, COLLECTION_NAME, id), normalized);
   } catch (error) {
     console.error("Error updating product:", error);
     const current = await getProductById(id);
     if (current) {
-      upsertLocalProduct(normalizeProduct({ ...current, ...data }, id));
+      upsertLocalProduct(normalizeProduct({ ...current, ...normalized }, id));
       return;
     }
     throw error;
@@ -183,8 +184,7 @@ export const updateProduct = async (id, data) => {
 
 export const deleteProduct = async (id) => {
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await deleteDoc(docRef);
+    await deleteDoc(doc(db, COLLECTION_NAME, id));
     removeLocalProduct(id);
     clearDeletedFlag(id);
   } catch (error) {
@@ -197,8 +197,7 @@ export const seedProducts = async () => {
   try {
     const batch = writeBatch(db);
     initialProducts.forEach((product) => {
-      const docRef = doc(db, COLLECTION_NAME, product.id);
-      batch.set(docRef, product);
+      batch.set(doc(db, COLLECTION_NAME, product.id), product);
     });
     await batch.commit();
     console.log("Products seeded successfully!");

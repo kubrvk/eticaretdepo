@@ -27,12 +27,12 @@ const normalizeOrder = (order, fallbackId) => ({
   phone: order.phone || "",
   email: order.email || "",
   createdAt: order.createdAt || new Date().toISOString(),
+  isArchived: Boolean(order.isArchived),
+  archivedAt: order.archivedAt || null,
 });
 
 const readLocalOrders = () => {
-  if (!isBrowser) {
-    return [];
-  }
+  if (!isBrowser) return [];
   try {
     return JSON.parse(window.localStorage.getItem(LOCAL_ORDERS_KEY) || "[]");
   } catch {
@@ -41,10 +41,13 @@ const readLocalOrders = () => {
 };
 
 const writeLocalOrders = (orders) => {
-  if (!isBrowser) {
-    return;
-  }
+  if (!isBrowser) return;
   window.localStorage.setItem(LOCAL_ORDERS_KEY, JSON.stringify(orders));
+};
+
+const upsertLocalOrder = (order) => {
+  const current = readLocalOrders().map((item) => normalizeOrder(item, item.id));
+  writeLocalOrders([...current.filter((item) => item.id !== order.id), order]);
 };
 
 const mergeOrders = (remoteOrders) => {
@@ -55,6 +58,7 @@ const mergeOrders = (remoteOrders) => {
 };
 
 export const deriveOrderStatus = (order) => {
+  if (order.isArchived) return "Arşivlendi";
   if (order.shipmentStatus === "Teslim Edildi") return "Tamamlandı";
   if (order.shipmentStatus === "Kargoya Verildi") return "Sevk Edildi";
   if (order.fulfillmentStatus === "Paketlendi") return "Sevke Hazır";
@@ -64,19 +68,31 @@ export const deriveOrderStatus = (order) => {
   return "Yeni Sipariş";
 };
 
+const normalizeRemoteOrders = (docs) =>
+  docs.map((item) => {
+    const order = normalizeOrder(item.data(), item.id);
+    return { ...order, status: deriveOrderStatus(order) };
+  });
+
 export const getOrders = async () => {
   try {
-    const ordersCol = collection(db, COLLECTION_NAME);
-    const orderSnapshot = await getDocs(ordersCol);
-    const remoteOrders = orderSnapshot.docs.map((item) => {
-      const order = normalizeOrder(item.data(), item.id);
-      return { ...order, status: deriveOrderStatus(order) };
-    });
-    return mergeOrders(remoteOrders);
+    const orderSnapshot = await getDocs(collection(db, COLLECTION_NAME));
+    return mergeOrders(normalizeRemoteOrders(orderSnapshot.docs));
   } catch (error) {
     console.error("Error fetching orders:", error);
     return mergeOrders(initialOrders.map((order) => normalizeOrder(order, order.id)));
   }
+};
+
+export const getOrdersByUser = async (user) => {
+  const orders = await getOrders();
+  if (!user) return [];
+  if (user.role === "admin") return orders;
+  return orders.filter(
+    (order) =>
+      order.email?.toLowerCase() === user.email?.toLowerCase() ||
+      order.dealer?.toLowerCase() === user.companyName?.toLowerCase()
+  );
 };
 
 export const createOrder = async (orderData) => {
@@ -86,11 +102,8 @@ export const createOrder = async (orderData) => {
     {
       ...orderData,
       id: newDocRef.id || localId,
-      approvalStatus: orderData.approvalStatus || "Onay Bekliyor",
-      paymentStatus: orderData.paymentStatus || "Ödeme Bekliyor",
-      fulfillmentStatus: orderData.fulfillmentStatus || "Sırada",
-      shipmentStatus: orderData.shipmentStatus || "Sevk Bekliyor",
       createdAt: new Date().toISOString(),
+      isArchived: false,
     },
     newDocRef.id || localId
   );
@@ -104,30 +117,40 @@ export const createOrder = async (orderData) => {
     return finalOrder;
   } catch (error) {
     console.error("Error creating order:", error);
-    const localOrders = readLocalOrders();
-    writeLocalOrders([...localOrders, finalOrder]);
+    upsertLocalOrder(finalOrder);
     return finalOrder;
   }
 };
 
 export const updateOrderWorkflow = async (id, patch) => {
-  const update = { ...patch };
-  if (!update.status) {
-    const currentOrders = await getOrders();
-    const current = currentOrders.find((order) => order.id === id);
-    update.status = deriveOrderStatus({ ...current, ...patch });
-  }
+  const currentOrders = await getOrders();
+  const current = currentOrders.find((order) => order.id === id) || normalizeOrder({ id }, id);
+  const next = {
+    ...current,
+    ...patch,
+  };
+  next.status = deriveOrderStatus(next);
 
   try {
-    const docRef = doc(db, COLLECTION_NAME, id);
-    await updateDoc(docRef, update);
+    await updateDoc(doc(db, COLLECTION_NAME, id), next);
   } catch (error) {
     console.error("Error updating order workflow:", error);
-    const orders = readLocalOrders().map((item) => normalizeOrder(item, item.id));
-    const current = orders.find((item) => item.id === id) || normalizeOrder(initialOrders.find((item) => item.id === id) || { id }, id);
-    const next = { ...current, ...update };
-    writeLocalOrders([...orders.filter((item) => item.id !== id), next]);
+    upsertLocalOrder(next);
   }
+};
+
+export const archiveOrder = async (id) => {
+  await updateOrderWorkflow(id, {
+    isArchived: true,
+    archivedAt: new Date().toISOString(),
+  });
+};
+
+export const restoreOrder = async (id) => {
+  await updateOrderWorkflow(id, {
+    isArchived: false,
+    archivedAt: null,
+  });
 };
 
 export const seedOrders = async () => {

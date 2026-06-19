@@ -1,6 +1,6 @@
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "../firebase";
-import { findLocalAccountByEmail, loginLocalAccount, registerLocalAccount } from "./accountService";
+import { ensureSeedAccounts, findLocalAccountByEmail, loginLocalAccount, registerLocalAccount } from "./accountService";
 
 const shapeUser = (accountLike) => ({
   uid: accountLike.uid || accountLike.id || `local-${accountLike.email}`,
@@ -12,6 +12,7 @@ const shapeUser = (accountLike) => ({
 });
 
 export const registerUser = async ({ email, password, fullName, companyName }) => {
+  ensureSeedAccounts();
   const localAccount = registerLocalAccount({ email, password, fullName, companyName });
 
   try {
@@ -27,6 +28,7 @@ export const registerUser = async ({ email, password, fullName, companyName }) =
 };
 
 export const loginUser = async ({ email, password }) => {
+  ensureSeedAccounts();
   const localAccount = findLocalAccountByEmail(email);
 
   try {

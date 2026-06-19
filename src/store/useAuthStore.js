@@ -15,6 +15,16 @@ export const useAuthStore = create(
           isAdmin: role === "admin",
         });
       },
+      updateUser: (patch) =>
+        set((state) => {
+          if (!state.user) return state;
+          const nextUser = { ...state.user, ...patch };
+          return {
+            user: nextUser,
+            role: nextUser.role || state.role,
+            isAdmin: (nextUser.role || state.role) === "admin",
+          };
+        }),
       logout: () =>
         set({
           user: null,

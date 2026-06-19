@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useMemo, useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import { useCartStore } from "../../store/useCartStore";
 import { useAuthStore } from "../../store/useAuthStore";
 import { createOrder } from "../../services/orderService";
@@ -10,37 +10,53 @@ export default function Checkout() {
   const { user, role } = useAuthStore();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [formData, setFormData] = useState({
-    fullName: user?.fullName || "",
-    address: "",
-    city: "",
-    phone: "",
-  });
+
+  const missingProfileFields = useMemo(() => {
+    if (!user) return [];
+    return ["fullName", "phone", "city", "address"].filter((field) => !String(user[field] || "").trim());
+  }, [user]);
 
   if (items.length === 0) {
-    navigate("/cart");
-    return null;
+    return <Navigate to="/cart" replace />;
   }
 
-  const handleChange = (event) => {
-    setFormData({ ...formData, [event.target.name]: event.target.value });
-  };
+  if (!user) {
+    return (
+      <div className="page-state">
+        Satın alma için önce giriş yapmanız gerekiyor.
+        <div style={{ marginTop: "1rem" }}>
+          <button className="checkout-button" type="button" onClick={() => navigate("/login")}>
+            Giriş Yap
+          </button>
+        </div>
+      </div>
+    );
+  }
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const handleSubmit = async () => {
+    if (missingProfileFields.length > 0) {
+      window.alert("Sipariş oluşturmadan önce profilinizde telefon, şehir ve adres bilgilerini tamamlayın.");
+      navigate("/account");
+      return;
+    }
+
+    if (!window.confirm("Sepetteki ürünlerle sipariş oluşturulsun mu?")) {
+      return;
+    }
+
     setLoading(true);
 
     try {
       const isDealer = role === "dealer";
       const newOrder = {
-        customer: formData.fullName,
-        dealer: isDealer ? user?.companyName || formData.fullName : "Web Siparişi",
+        customer: user.fullName,
+        dealer: isDealer ? user.companyName || user.fullName : "Web Siparişi",
         channel: isDealer ? "B2B" : "D2C",
         orderType: isDealer ? "Bayi Siparişi" : "Perakende Sipariş",
-        email: user?.email || "guest@example.com",
-        address: formData.address,
-        city: formData.city,
-        phone: formData.phone,
+        email: user.email,
+        address: user.address,
+        city: user.city,
+        phone: user.phone,
         items: items.reduce((sum, item) => sum + item.quantity, 0),
         total: getCartTotal(),
         priority: getCartTotal() > 50000 ? "Yüksek" : "Normal",
@@ -62,6 +78,7 @@ export default function Checkout() {
         const product = await getProductById(item.id);
         if (product && product.stock >= item.quantity) {
           await updateProduct(item.id, {
+            ...product,
             stock: product.stock - item.quantity,
             reserved: Math.max(Number(product.reserved || 0) + item.quantity, 0),
           });
@@ -69,45 +86,41 @@ export default function Checkout() {
       }
 
       clearCart();
-      alert(isDealer ? "Bayi siparişiniz onaya alındı." : "Siparişiniz başarıyla oluşturuldu.");
-      navigate(role === "admin" ? "/admin/orders" : "/");
+      window.alert(isDealer ? "Bayi siparişiniz onaya alındı." : "Siparişiniz başarıyla oluşturuldu.");
+      navigate("/account");
     } catch (error) {
       console.error(error);
-      alert("Sipariş oluşturulurken bir hata oluştu.");
+      window.alert("Sipariş oluşturulurken bir hata oluştu.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="product-detail-page">
-      <div className="product-detail-card">
-        <div className="product-detail-info">
-          <span className="product-detail-category">Teslimat ve ödeme</span>
-          <h1>{role === "dealer" ? "Bayi siparişini tamamlayın" : "Sipariş bilgilerinizi tamamlayın"}</h1>
-          <p className="product-detail-description">
-            {role === "dealer"
-              ? "Bayi siparişleri önce yönetsel onaya düşer, ardından ödeme ve depo hazırlık süreci başlar."
-              : "Perakende siparişler ödeme sonrası doğrudan operasyon kuyruğuna aktarılır."}
-          </p>
+    <div className="account-card">
+      <h2>Siparişinizi profil bilgilerinizle tamamlayın</h2>
+      <p>Bu hesapla sipariş oluşturulacak. Profilinizdeki teslimat bilgileri kullanılacaktır.</p>
 
-          <form onSubmit={handleSubmit} className="product-form-grid">
-            <input required type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Ad Soyad" />
-            <input required type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Telefon" />
-            <input required type="text" name="city" value={formData.city} onChange={handleChange} placeholder="Şehir" />
-            <textarea required name="address" value={formData.address} onChange={handleChange} rows="5" placeholder="Açık adres" />
+      <div className="account-facts">
+        <div><span>Yetkili kişi</span><strong>{user.fullName}</strong></div>
+        <div><span>Şirket / bayi</span><strong>{user.companyName}</strong></div>
+        <div><span>Telefon</span><strong>{user.phone || "Eksik"}</strong></div>
+        <div><span>Şehir</span><strong>{user.city || "Eksik"}</strong></div>
+        <div><span>Adres</span><strong>{user.address || "Eksik"}</strong></div>
+      </div>
 
-            <div className="form-actions">
-              <div>
-                <span className="product-detail-category">Ödenecek tutar</span>
-                <h2>{getCartTotal().toLocaleString("tr-TR")} TL</h2>
-              </div>
-              <button type="submit" disabled={loading}>
-                {loading ? "İşleniyor..." : role === "dealer" ? "Siparişi Onaya Gönder" : "Siparişi Onayla"}
-              </button>
-            </div>
-          </form>
-        </div>
+      <div className="summary-row total" style={{ marginTop: "1rem" }}>
+        <span>Genel Toplam</span>
+        <span>{getCartTotal().toLocaleString("tr-TR")} TL</span>
+      </div>
+
+      <div className="inline-actions" style={{ marginTop: "1rem" }}>
+        <button type="button" className="secondary-button" onClick={() => navigate("/account")}>
+          Profili Düzenle
+        </button>
+        <button type="button" className="checkout-button" onClick={handleSubmit} disabled={loading}>
+          {loading ? "İşleniyor..." : "Siparişi Oluştur"}
+        </button>
       </div>
     </div>
   );

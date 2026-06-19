@@ -14,12 +14,10 @@ export default function HomePage() {
     const fetchProducts = async () => {
       setLoading(true);
       let data = await getProducts();
-
       if (data.length === 0) {
         await seedProducts();
         data = await getProducts();
       }
-
       setProducts(data);
       setLoading(false);
     };
@@ -28,11 +26,8 @@ export default function HomePage() {
   }, []);
 
   const categories = useMemo(() => ["Tümü", ...new Set(products.map((product) => product.category))], [products]);
-  const featuredProducts = useMemo(() => products.slice(0, 8), [products]);
-
-  const filteredProducts = activeCategory === "Tümü"
-    ? featuredProducts
-    : featuredProducts.filter((product) => product.category === activeCategory);
+  const featuredProducts = useMemo(() => products.slice(0, 16), [products]);
+  const filteredProducts = activeCategory === "Tümü" ? featuredProducts : featuredProducts.filter((product) => product.category === activeCategory);
 
   if (loading) {
     return <div className="page-state">Yükleniyor...</div>;
@@ -43,46 +38,32 @@ export default function HomePage() {
       <section className="market-hero">
         <div className="market-hero-copy">
           <span className="eyebrow">Yeni nesil e-ticaret vitrini</span>
-          <h1>Hepsiburada ve Trendyol hissi veren profesyonel bir bayi vitrini</h1>
-          <p>
-            Pazaryeri kampanyaları, bayi fiyat listeleri ve merkez depo stokları tek ekran deneyimiyle sunuluyor.
-          </p>
+          <h1>Gerçek bayi mantığında yüksek devirli, güçlü stoklu ürün kataloğu</h1>
+          <p>Pazaryeri kampanyaları, bayi fiyat listeleri ve merkez depo stokları tek ekran deneyimiyle sunuluyor.</p>
           <div className="market-hero-badges">
-            <span>
-              <ShieldCheck size={16} />
-              Yetkili bayi fiyatı
-            </span>
-            <span>
-              <Truck size={16} />
-              Aynı gün sevkiyat
-            </span>
-            <span>
-              <Store size={16} />
-              Çok kanallı satış
-            </span>
+            <span><ShieldCheck size={16} /> Yetkili bayi fiyatı</span>
+            <span><Truck size={16} /> Aynı gün sevkiyat</span>
+            <span><Store size={16} /> Çok kanallı satış</span>
           </div>
         </div>
         <div className="market-hero-card">
           <div>
             <strong>Bugünün öne çıkan fırsatı</strong>
-            <h3>Distribütör destekli elektronik kampanyası</h3>
-            <p>Seçili ürünlerde bayi alış fiyatı ve pazaryeri listeleme avantajı birlikte.</p>
+            <h3>Yüksek stoklu hızlı dönen toptan ürünler</h3>
+            <p>Temizlik, ofis, elektronik ve bebek kategorilerinde bayi alış fiyatı avantajı.</p>
           </div>
-          <img
-            src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=700&q=80"
-            alt="Kampanya"
-          />
+          <img src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=700&q=80" alt="Kampanya" />
         </div>
       </section>
 
       <section className="market-strip">
         <div>
-          <strong>27 aktif bayi</strong>
-          <span>Alt bayi siparişleri günlük senkronize</span>
+          <strong>{products.length} aktif ürün</strong>
+          <span>Yüksek stokla yönetilen gerçekçi bayi kataloğu</span>
         </div>
         <div>
-          <strong>6 ana kategori</strong>
-          <span>Elektronikten modaya güçlü katalog</span>
+          <strong>{categories.length - 1} ana kategori</strong>
+          <span>Elektronikten gıdaya çoklu tedarik yapısı</span>
         </div>
         <div>
           <strong>%91 zamanında çıkış</strong>
@@ -95,11 +76,7 @@ export default function HomePage() {
           <h3>Kategoriler</h3>
           <ul>
             {categories.map((category) => (
-              <li
-                key={category}
-                className={activeCategory === category ? "active" : ""}
-                onClick={() => setActiveCategory(category)}
-              >
+              <li key={category} className={activeCategory === category ? "active" : ""} onClick={() => setActiveCategory(category)}>
                 {category}
               </li>
             ))}
@@ -135,7 +112,7 @@ export default function HomePage() {
                   <div className="product-rating">
                     <Star size={14} fill="#f59e0b" color="#f59e0b" />
                     <span>{product.rating}</span>
-                    <small>Bayi tarafından öneriliyor</small>
+                    <small>{product.stock} adet hazır stok</small>
                   </div>
 
                   <div className="price-stack">

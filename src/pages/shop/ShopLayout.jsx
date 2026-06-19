@@ -1,17 +1,24 @@
 import React from "react";
 import { Outlet, Link, useNavigate } from "react-router-dom";
-import { ShoppingCart, User, Search, Settings, Store, ShieldCheck, Truck } from "lucide-react";
+import { ShoppingCart, User, Search, Settings, Store, ShieldCheck, Truck, LogOut } from "lucide-react";
 import { useCartStore } from "../../store/useCartStore";
 import { useAuthStore } from "../../store/useAuthStore";
+import { logoutUser } from "../../services/authService";
 import "./shop.css";
 
 export default function ShopLayout() {
   const { items } = useCartStore();
-  const { user, isAdmin, role } = useAuthStore();
+  const { user, isAdmin, role, logout } = useAuthStore();
   const navigate = useNavigate();
 
   const cartItemCount = items.reduce((total, item) => total + item.quantity, 0);
-  const accountLabel = role === "admin" ? "Admin Hesabı" : role === "dealer" ? "Bayi Hesabı" : "Hesabım";
+  const accountLabel = role === "admin" ? "Admin Hesabı" : role === "dealer" ? "Bayi Panelim" : "Hesabım";
+
+  const handleLogout = async () => {
+    await logoutUser();
+    logout();
+    navigate("/");
+  };
 
   return (
     <div className="shop-layout">
@@ -39,10 +46,16 @@ export default function ShopLayout() {
 
         <nav className="shop-nav">
           {user ? (
-            <div className="nav-icon-block">
-              <User size={20} />
-              <span>{accountLabel}</span>
-            </div>
+            <>
+              <Link to="/account" className="nav-icon-block">
+                <User size={20} />
+                <span>{accountLabel}</span>
+              </Link>
+              <button type="button" onClick={handleLogout} className="nav-icon-block">
+                <LogOut size={20} />
+                <span>Çıkış</span>
+              </button>
+            </>
           ) : (
             <Link to="/login" className="nav-icon-block">
               <User size={20} />

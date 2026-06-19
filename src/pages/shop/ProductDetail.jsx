@@ -9,6 +9,7 @@ export default function ProductDetail() {
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [activeImage, setActiveImage] = useState("");
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
@@ -16,6 +17,7 @@ export default function ProductDetail() {
       setLoading(true);
       const data = await getProductById(id);
       setProduct(data);
+      setActiveImage(data?.images?.[0] || data?.image || "");
       setLoading(false);
     };
 
@@ -39,11 +41,20 @@ export default function ProductDetail() {
 
       <div className="product-detail-card">
         <div className="product-detail-media">
-          <img src={product.image} alt={product.name} />
+          <img src={activeImage || product.image} alt={product.name} />
+          <div className="gallery-strip">
+            {product.images.map((image, index) => (
+              <button key={`${image}-${index}`} type="button" className={`gallery-thumb ${activeImage === image ? "active" : ""}`} onClick={() => setActiveImage(image)}>
+                <img src={image} alt={`${product.name} görsel ${index + 1}`} />
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="product-detail-info">
-          <span className="product-detail-category">{product.category}</span>
+          <span className="product-detail-category">
+            {product.category} / {product.subcategory}
+          </span>
           <h1>{product.name}</h1>
           <p className="product-detail-description">{product.description}</p>
 
