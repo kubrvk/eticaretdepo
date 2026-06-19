@@ -1,298 +1,144 @@
 # ETicaretDepo
 
-React + Firebase tabanlı, bayi mantığıyla çalışan bir e-ticaret depo ve operasyon yönetim uygulaması.
+![React](https://img.shields.io/badge/React-19-20232a?logo=react&logoColor=61dafb)
+![Vite](https://img.shields.io/badge/Vite-6-646cff?logo=vite&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-ffca28?logo=firebase&logoColor=black)
+![Status](https://img.shields.io/badge/status-active-success)
 
-Bu proje klasik bir vitrin sitesinden daha fazlasını hedefler:
+ETicaretDepo, bayi mantığıyla çalışan bir e-ticaret depo ve operasyon paneli denemesi.  
+Proje hem vitrin tarafını hem de yönetim tarafını tek repo içinde topluyor. Mantık şu:
 
-- son kullanıcı veya bayi hesabıyla giriş
-- bayi fiyatı ve perakende fiyatı ayrımı
-- admin panelinden ürün, stok ve operasyon yönetimi
-- siparişlerin onay, ödeme, depo, kargo ve teslim akışıyla yönetilmesi
-- ürün galerisi, açıklama, alt kategori ve yüksek stoklu katalog yapısı
+- bayi veya kullanıcı giriş yapar
+- ürünleri görür, sepete ekler
+- sipariş oluşturur
+- admin siparişi onay, ödeme, depo, kargo ve teslim akışında yönetir
 
-## Proje Amacı
+Kısacası düz bir mağaza arayüzünden çok, ürün + bayi + operasyon tarafını aynı yerde toplamaya çalışan bir sistem.
 
-Bu uygulama, gerçek hayatta distribütör, toptancı veya merkez depo üzerinden çalışan bir bayi sistemini simüle eder.
+---
 
-Örnek kullanım senaryoları:
+## Ne Var?
 
-- merkez depo ürünleri admin tarafından yönetir
-- bayi kullanıcıları sisteme girip ürünleri görür, sepete ekler ve sipariş oluşturur
-- siparişler doğrudan tamamlanmaz; operasyon sürecine düşer
-- admin siparişi onaylar, ödeme durumunu işler, depoya aktarır, paketler ve kargoya verir
+Projede şu an çalışan ana parçalar:
 
-## Öne Çıkan Özellikler
-
-- Trendyol benzeri turuncu temalı admin panel
-- çoklu görselli ürün kartları
-- kategori + alt kategori yapısı
-- ürün açıklama alanı
-- bayi / perakende kanal ayrımı
+- mağaza ana sayfası
+- ürün detay sayfası
+- çoklu görselli ürün galerisi
+- sepet
+- hesap merkezi
+- bayi kayıt / giriş sistemi
 - demo admin hesabı
-- bayi kullanıcı profili
-- profil bilgileri ile formsuz sipariş oluşturma
-- sipariş operasyonunda arşive alma ve geri alma
-- Firebase başarısız olduğunda `localStorage` ile yedek çalışma mantığı
+- admin ürün yönetimi
+- admin sipariş operasyon paneli
+- arşive alma / geri alma mantığı
 
-## Demo Hesaplar
+Ürünler sadece isim-fiyat listesi değil.  
+Kategori, alt kategori, bayi fiyatı, minimum sipariş adedi, stok, tedarikçi, açıklama ve galeri görselleriyle tutuluyor.
+
+---
+
+## Demo Giriş
 
 ### Admin
 
-- E-posta: `admin@eticaretdepo.com`
-- Şifre: `admin1234`
+- mail: `admin@eticaretdepo.com`
+- şifre: `admin1234`
 
 ### Bayi
 
-- `/register` ekranından yeni bayi hesabı oluşturabilirsiniz
-- bayi hesapları varsayılan olarak `dealer` rolüyle açılır
+İstersen `/register` üzerinden yeni bayi hesabı oluşturabilirsin.  
+Yeni açılan hesaplar bayi rolüyle sisteme girer.
 
-## Ekranlar
+---
 
-### Mağaza Tarafı
+## Proje Mantığı
 
-- ana sayfa
-- kategori filtreleme
-- ürün detay sayfası
-- galeri görselleri
-- sepet
-- hesap merkezi
-- profil düzenleme
-- sipariş geçmişi
+Bu projede satın alma tarafı bilerek biraz daha gerçekçi kurulmaya çalışıldı.
 
-### Admin Tarafı
+Misafir kullanıcı sipariş veremez.  
+Önce giriş yapılması gerekir.
 
-- dashboard
-- ürün yönetimi
-- ürün ekleme / güncelleme / silme
-- çoklu görsel yükleme
-- sipariş operasyon yönetimi
-- arşivlenen siparişleri geri alma
+Giriş yapan kullanıcı checkout ekranında tekrar form doldurmaz.  
+Sistem, hesap merkezindeki kayıtlı bilgileri kullanır.
+
+Eksik bilgi varsa kullanıcıyı profil sayfasına yollar:
+
+- ad soyad
+- bayi / şirket adı
+- telefon
+- şehir
+- açık adres
+
+Bu bilgi mantığı özellikle bayi siparişi tarafında önemli olduğu için formu checkout’tan ayırdım.
+
+---
 
 ## Sipariş Akışı
 
-Bu projede sipariş tek bir `status` alanıyla değil, operasyonel adımlarla yönetilir:
+Siparişler burada tek satırlık bir `status` mantığıyla ilerlemiyor.  
+Admin tarafında süreç birkaç adıma ayrılmış durumda:
 
-1. `Onay Bekliyor`
-2. `Onaylandı`
-3. `Ödeme Alındı`
-4. `Depoya Aktar`
-5. `Hazırlanıyor`
-6. `Paketlendi`
-7. `Kargoya Verildi`
-8. `Teslim Edildi`
+1. Onay bekliyor
+2. Onaylandı
+3. Ödeme alındı
+4. Depoya aktarıldı
+5. Hazırlanıyor
+6. Paketlendi
+7. Kargoya verildi
+8. Teslim edildi
 
-Yanlış işlem yapılırsa sipariş tamamen silinmez:
+Yanlışlıkla işlem yapılırsa sipariş tamamen uçmuyor.
 
-- operasyondan kaldırılır
-- arşive alınır
-- admin isterse geri alır
+- operasyondan kaldırılabiliyor
+- arşive alınabiliyor
+- sonra geri alınabiliyor
 
-## Sistem Akışı
+Yani “sil” yerine daha güvenli bir operasyon mantığı var.
 
-```mermaid
-flowchart TD
-    A["Kullanıcı / Bayi Girişi"] --> B["Ürünleri Görüntüle"]
-    B --> C["Sepete Ekle"]
-    C --> D{"Giriş yapılmış mı?"}
-    D -- "Hayır" --> E["Login / Register"]
-    D -- "Evet" --> F{"Profil bilgileri tamam mı?"}
-    F -- "Hayır" --> G["Hesap Merkezi"]
-    F -- "Evet" --> H["Sipariş Oluştur"]
-    H --> I["Admin Operasyon Paneli"]
-    I --> J["Siparişi Onayla"]
-    J --> K["Ödeme İşle"]
-    K --> L["Depoya Aktar"]
-    L --> M["Paketle"]
-    M --> N["Kargoya Ver"]
-    N --> O["Teslim Edildi"]
-    I --> P["Arşive Al"]
-    P --> Q["Geri Al"]
-```
+---
 
-## Ürün Modeli
+## Ürün Yapısı
 
-Her ürün aşağıdaki yapıyı destekler:
+Her ürün şu tip alanlarla tutuluyor:
 
 ```js
 {
   id: "1",
   sku: "SKU-1001",
-  name: "Ürün adı",
-  brand: "Marka",
-  category: "Ana kategori",
-  subcategory: "Alt kategori",
-  price: 1000,
-  wholesalePrice: 850,
-  stock: 120,
-  reserved: 10,
+  name: "Apple iPhone 15 Pro 128 GB",
+  brand: "Apple",
+  category: "Elektronik",
+  subcategory: "Tüketici Elektroniği",
+  price: 64999,
+  wholesalePrice: 62150,
+  stock: 45,
+  reserved: 12,
   threshold: 20,
+  minOrderQty: 1,
+  supplier: "Apple Distribütör",
   location: "A-01",
-  supplier: "Distribütör",
-  minOrderQty: 4,
-  channel: "B2B + Pazaryeri",
+  channel: "Pazaryeri + Bayi",
   description: "Ürün açıklaması",
-  image: "Ana görsel",
-  images: ["Ana görsel", "Galeri 1", "Galeri 2"]
+  image: "ana görsel",
+  images: ["ana görsel", "galeri 1", "galeri 2"]
 }
 ```
 
-## Kullanılan Teknolojiler
+Admin panelinde ürün eklerken:
 
-- React 19
-- Vite
-- React Router DOM
-- Zustand
-- Firebase Auth
-- Firebase Firestore
-- Lucide React
+- çoklu görsel yüklenebilir
+- yüklenen görseller önizlenir
+- istenen görsel kaldırılabilir
+- ilk görsel ana görsel olarak kullanılır
 
-## Proje Yapısı
+Ürün detay sayfasında da bu yapı doğrudan galeri olarak gösterilir.
 
-```text
-src/
-  pages/
-    admin/
-      AdminLayout.jsx
-      Dashboard.jsx
-      ProductManagement.jsx
-      OrderManagement.jsx
-    auth/
-      Login.jsx
-      Register.jsx
-    shop/
-      ShopLayout.jsx
-      HomePage.jsx
-      ProductDetail.jsx
-      Cart.jsx
-      Checkout.jsx
-      AccountPage.jsx
-  services/
-    accountService.js
-    authService.js
-    productService.js
-    orderService.js
-    mockData.js
-  store/
-    useAuthStore.js
-    useCartStore.js
-```
+---
 
-## Yerelde Çalıştırma
+## Katalog
 
-```bash
-npm install
-npm run dev
-```
-
-Uygulama geliştirme modunda `127.0.0.1` üzerinden açılır.
-
-## Production Build
-
-```bash
-npm run build
-```
-
-Build çıktısı `dist/` klasörüne yazılır.
-
-## Preview
-
-```bash
-npm run preview
-```
-
-## Firebase Yapısı
-
-Proje şu anda Firebase ile çalışacak şekilde ayarlıdır:
-
-- `src/firebase.js` içinde Firebase config bulunur
-- ürün ve sipariş verileri Firestore üzerinden okunur / yazılır
-- giriş işlemleri Firebase Auth ile denenir
-- eğer Firebase tarafında yazma veya auth problemi olursa bazı akışlarda yerel yedek mekanizma devreye girer
-
-### Önemli Not
-
-Şu an admin ürün yüklemede görseller `Firebase Storage` yerine tarayıcıda `base64` olarak saklanır.
-
-Bu ne sağlar:
-
-- hızlı demo
-- upload benzeri deneyim
-- ek backend kurmadan galeri desteği
-
-Bu ne sağlamaz:
-
-- gerçek dosya depolama
-- CDN optimizasyonu
-- büyük görseller için uzun vadeli ölçeklenebilirlik
-
-Gerçek production için bir sonraki mantıklı adım:
-
-- Firebase Storage entegrasyonu
-- görsel URL’lerini Firestore’da saklama
-
-## Demo ve Yedek Çalışma Mantığı
-
-Projede iki katmanlı veri mantığı vardır:
-
-### 1. Firebase
-
-Mümkünse veriler önce Firebase’e yazılır.
-
-### 2. Local Fallback
-
-Eğer Firebase yazma veya okuma sırasında hata oluşursa:
-
-- ürünler `localStorage` içinde saklanır
-- siparişler `localStorage` içinde saklanır
-- hesaplar `localStorage` içinde tutulur
-
-Bu sayede demo veya geliştirme sırasında uygulama tamamen durmaz.
-
-## Hesap Merkezi Mantığı
-
-Sipariş oluşturmak için:
-
-- giriş yapmak zorunludur
-- profil bilgileri eksiksiz olmalıdır
-- kullanıcı checkout ekranında ekstra form doldurmaz
-
-Gerekli profil alanları:
-
-- ad soyad
-- şirket / bayi adı
-- telefon
-- şehir
-- açık adres
-
-Eksik bilgi varsa kullanıcı `AccountPage` ekranına yönlendirilir.
-
-## Ürün Görsel Sistemi
-
-Her ürün:
-
-- 1 ana görsel
-- birden fazla galeri görseli
-
-ile çalışır.
-
-Admin panelinde:
-
-- birden fazla dosya seçilebilir
-- mevcut galeriye ekleme yapılabilir
-- önizleme gösterilir
-- görsel kaldırılabilir
-
-Ürün detay sayfasında:
-
-- büyük ana görsel
-- küçük galeri küçük resimleri
-- aktif görsel değiştirme
-
-desteği vardır.
-
-## Gerçekçi Katalog Yapısı
-
-Demo veriler sadece tek tip elektronik ürünlerden oluşmaz. Daha çok bayi ve toptan satış mantığına yakın olacak şekilde şu alanlara yayılmıştır:
+Katalog tek bir kategoriye sıkışık değil.  
+Daha çok bayi ve toptan satış tarafına yakın dursun diye ürünler farklı gruplara ayrıldı:
 
 - elektronik
 - moda
@@ -303,29 +149,128 @@ Demo veriler sadece tek tip elektronik ürünlerden oluşmaz. Daha çok bayi ve 
 - telefon aksesuar
 - küçük ev aletleri
 
-Bu sayede hem perakende hem bayi sipariş mantığı daha doğal görünür.
+Buradaki amaç gerçek market / bayi / pazaryeri karışımı bir katalog hissi vermekti.  
+O yüzden sadece “şık ürünler” değil, hızlı dönen ve yüksek stoklu kalemler de var.
 
-## Geliştirme Notları
+---
 
-Şu anda yapılabilecek iyi sonraki adımlar:
+## Teknik Taraf
 
-- Firebase Storage entegrasyonu
-- gerçek rol tablosu için Firestore `users` koleksiyonu
-- ürün arama ve filtreleme
-- bayi bazlı fiyat listesi
-- sipariş detay sayfası
-- dashboard grafikler
-- code splitting ile bundle küçültme
+### Frontend
 
-## GitHub / Deploy Notları
+- React 19
+- Vite
+- React Router DOM
+- Zustand
+- Lucide React
 
-Firebase Hosting için temel akış:
+### Backend / Veri
 
-1. Firebase projesi oluştur
-2. `.firebaserc` içindeki proje ID’yi kontrol et
-3. GitHub Actions secret olarak servis hesabını ekle
-4. `main` branch push sonrası deploy al
+- Firebase Auth
+- Firebase Firestore
 
-## Lisans
+### Yedek Çalışma Mantığı
 
-Bu repo şu anda özel / demo amaçlı geliştirme yapısı olarak düşünülmüştür. İstersen bu bölüme MIT veya özel lisans ekleyebilirim.
+Firebase her zaman hazır olmayabileceği için bazı akışlarda local fallback var.
+
+Özetle:
+
+- auth mümkünse Firebase ile deneniyor
+- ürünler mümkünse Firestore’a yazılıyor
+- siparişler mümkünse Firestore’a yazılıyor
+- hata olursa bazı veriler `localStorage` üzerinden tutuluyor
+
+Bu production için ideal değil ama geliştirme ve demo için sistemi ayakta tutuyor.
+
+---
+
+## Kod Yapısı
+
+```text
+src/
+├── pages/
+│   ├── admin/
+│   │   ├── AdminLayout.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── ProductManagement.jsx
+│   │   └── OrderManagement.jsx
+│   ├── auth/
+│   │   ├── Login.jsx
+│   │   └── Register.jsx
+│   └── shop/
+│       ├── ShopLayout.jsx
+│       ├── HomePage.jsx
+│       ├── ProductDetail.jsx
+│       ├── Cart.jsx
+│       ├── Checkout.jsx
+│       └── AccountPage.jsx
+├── services/
+│   ├── accountService.js
+│   ├── authService.js
+│   ├── productService.js
+│   ├── orderService.js
+│   └── mockData.js
+├── store/
+│   ├── useAuthStore.js
+│   └── useCartStore.js
+├── App.jsx
+└── firebase.js
+```
+
+---
+
+## Yerelde Çalıştırma
+
+```bash
+npm install
+npm run dev
+```
+
+Preview:
+
+```bash
+npm run preview
+```
+
+Production build:
+
+```bash
+npm run build
+```
+
+Build çıktısı `dist/` klasörüne gider.
+
+---
+
+## Şu Anda Bilinçli Olarak Basit Bıraktığım Yerler
+
+Bu repo hâlâ geliştirme halinde, o yüzden bazı parçalar tam production seviyesi değil:
+
+- görseller şu an Firebase Storage yerine tarayıcı tarafında işleniyor
+- kullanıcı rolleri gerçek bir `users` koleksiyonu yerine local + auth mantığıyla yürütülüyor
+- sipariş detay ekranı henüz ayrı sayfa değil
+- ürün arama / filtreleme derinleştirilmedi
+- bundle boyutu hâlâ büyük
+
+Yani iskelet oturmuş durumda ama büyütülebilecek çok yer var.
+
+---
+
+## Sonraki Mantıklı Adımlar
+
+Ben bu projeyi devam ettirsem sıradaki işler büyük ihtimalle şunlar olurdu:
+
+1. Firebase Storage ile gerçek görsel upload
+2. Firestore üzerinde gerçek kullanıcı rol yönetimi
+3. bayi bazlı fiyat listesi
+4. sipariş detay sayfası
+5. dashboard grafik ve raporlar
+6. ürün arama / filtre / sıralama
+7. code splitting ile bundle küçültme
+
+---
+
+## Not
+
+README’yi özellikle daha doğal ve proje sahibi ağzına yakın tutmaya çalıştım.  
+İstersen bir sonraki adımda buna repo içi gerçek ekran görüntüleri de ekleyebilirim. En düzgünü `docs/` klasörü açıp mağaza, ürün detay, admin panel ve sipariş operasyon ekranlarını oraya koymak olur.
