@@ -15,8 +15,6 @@ ETicaretDepo is a React and Firebase based B2B-oriented e-commerce and warehouse
 The project is built around a distributor / dealer workflow rather than a simple consumer storefront. Products carry both retail and dealer pricing, orders move through a staged operational pipeline, and account data is reused during checkout instead of collecting delivery details repeatedly on every order.
 <br clear="left"/>
 
-<br/>
-
 <p align="center">
 <img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret4.PNG" width="31%"/>  <img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret3.PNG" width="34%"/>
 </p>
