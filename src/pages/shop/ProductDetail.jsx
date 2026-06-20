@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ShoppingCart, ArrowLeft, ShieldCheck, Truck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ShoppingCart, ShieldCheck, Truck } from "lucide-react";
 import { getProductById } from "../../services/productService";
 import { useCartStore } from "../../store/useCartStore";
 
@@ -24,6 +24,11 @@ export default function ProductDetail() {
     fetchProduct();
   }, [id]);
 
+  const galleryImages = useMemo(() => {
+    if (!product) return [];
+    return [...new Set([...(product.images || []), product.image].filter(Boolean))];
+  }, [product]);
+
   if (loading) {
     return <div className="page-state">Yükleniyor...</div>;
   }
@@ -41,9 +46,12 @@ export default function ProductDetail() {
 
       <div className="product-detail-card">
         <div className="product-detail-media">
-          <img src={activeImage || product.image} alt={product.name} />
-          <div className="gallery-strip">
-            {product.images.map((image, index) => (
+          <div className="product-detail-image-frame">
+            <img src={activeImage || product.image} alt={product.name} />
+          </div>
+
+          <div className="gallery-strip" aria-label="Ürün görsel galerisi">
+            {galleryImages.map((image, index) => (
               <button key={`${image}-${index}`} type="button" className={`gallery-thumb ${activeImage === image ? "active" : ""}`} onClick={() => setActiveImage(image)}>
                 <img src={image} alt={`${product.name} görsel ${index + 1}`} />
               </button>
@@ -99,6 +107,30 @@ export default function ProductDetail() {
           </button>
         </div>
       </div>
+
+      <section className="product-description-panel">
+        <div className="product-description-head">
+          <span>Ürün Detayı</span>
+          <h2>{product.name}</h2>
+        </div>
+        <div className="product-description-body">
+          <p>{product.description}</p>
+          <ul>
+            <li>
+              <CheckCircle2 size={18} />
+              <span>{product.brand || product.category} güvencesiyle bayi ve web satışına uygun stok.</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} />
+              <span>Minimum sipariş adedi {product.minOrderQty}; hazır stok {product.stock} adet.</span>
+            </li>
+            <li>
+              <CheckCircle2 size={18} />
+              <span>{product.channel} kanalı için fiyatlandırılmış, merkez depo çıkışlı ürün.</span>
+            </li>
+          </ul>
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,33 +1,67 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { ShoppingCart, Star, ShieldCheck, Store, Truck } from "lucide-react";
+import { Link, useSearchParams } from "react-router-dom";
+import { ChevronLeft, ChevronRight, ShoppingCart, Star, ShieldCheck, Store, Truck } from "lucide-react";
+import { getHomeSlides, defaultHomeSlides } from "../../services/homeContentService";
 import { getProducts, seedProducts } from "../../services/productService";
 import { useCartStore } from "../../store/useCartStore";
 
 export default function HomePage() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
+  const [slides, setSlides] = useState(defaultHomeSlides);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState("Tümü");
+  const [activeSlide, setActiveSlide] = useState(0);
   const addItem = useCartStore((state) => state.addItem);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchHomeData = async () => {
       setLoading(true);
-      let data = await getProducts();
-      if (data.length === 0) {
+      const [slideData, productData] = await Promise.all([getHomeSlides(), getProducts()]);
+      let nextProducts = productData;
+      if (nextProducts.length === 0) {
         await seedProducts();
-        data = await getProducts();
+        nextProducts = await getProducts();
       }
-      setProducts(data);
+      setSlides(slideData);
+      setProducts(nextProducts);
       setLoading(false);
     };
 
-    fetchProducts();
+    fetchHomeData();
   }, []);
+
+  useEffect(() => {
+    const slideTimer = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % slides.length);
+    }, 5500);
+
+    return () => window.clearInterval(slideTimer);
+  }, [slides.length]);
+
+  useEffect(() => {
+    if (activeSlide >= slides.length) {
+      setActiveSlide(0);
+    }
+  }, [activeSlide, slides.length]);
 
   const categories = useMemo(() => ["Tümü", ...new Set(products.map((product) => product.category))], [products]);
   const featuredProducts = useMemo(() => products.slice(0, 16), [products]);
-  const filteredProducts = activeCategory === "Tümü" ? featuredProducts : featuredProducts.filter((product) => product.category === activeCategory);
+  const searchQuery = (searchParams.get("q") || "").trim().toLocaleLowerCase("tr-TR");
+  const searchableProducts = searchQuery ? products : featuredProducts;
+  const categoryProducts = activeCategory === "Tümü" ? searchableProducts : searchableProducts.filter((product) => product.category === activeCategory);
+  const filteredProducts = searchQuery
+    ? categoryProducts.filter((product) =>
+        [product.name, product.brand, product.category, product.subcategory, product.channel, product.description]
+          .filter(Boolean)
+          .some((value) => String(value).toLocaleLowerCase("tr-TR").includes(searchQuery))
+      )
+    : categoryProducts;
+  const slide = slides[activeSlide] || defaultHomeSlides[0];
+
+  const goToSlide = (direction) => {
+    setActiveSlide((current) => (current + direction + slides.length) % slides.length);
+  };
 
   if (loading) {
     return <div className="page-state">Yükleniyor...</div>;
@@ -35,24 +69,59 @@ export default function HomePage() {
 
   return (
     <div className="shop-home">
-      <section className="market-hero">
-        <div className="market-hero-copy">
-          <span className="eyebrow">Yeni nesil e-ticaret vitrini</span>
-          <h1>Gerçek bayi mantığında yüksek devirli, güçlü stoklu ürün kataloğu</h1>
-          <p>Pazaryeri kampanyaları, bayi fiyat listeleri ve merkez depo stokları tek ekran deneyimiyle sunuluyor.</p>
-          <div className="market-hero-badges">
-            <span><ShieldCheck size={16} /> Yetkili bayi fiyatı</span>
-            <span><Truck size={16} /> Aynı gün sevkiyat</span>
-            <span><Store size={16} /> Çok kanallı satış</span>
+      <section className="market-slider" style={{ "--slide-accent": slide.accent }}>
+        <img src={slide.image} alt={slide.title} className="market-slider-image" />
+        <div className="market-slider-overlay" />
+
+        <button className="slider-arrow slider-arrow-left" type="button" onClick={() => goToSlide(-1)} aria-label="Önceki kampanya">
+          <ChevronLeft size={22} />
+        </button>
+
+        <div className="market-slider-copy">
+          <span className="eyebrow">{slide.eyebrow}</span>
+          <h1>{slide.title}</h1>
+          <p>{slide.text}</p>
+          <a href="#featured-products" className="slider-cta">{slide.cta}</a>
+        </div>
+
+        <button className="slider-arrow slider-arrow-right" type="button" onClick={() => goToSlide(1)} aria-label="Sonraki kampanya">
+          <ChevronRight size={22} />
+        </button>
+
+        <div className="slider-dots" aria-label="Kampanya slaytları">
+          {slides.map((heroSlide, index) => (
+            <button
+              key={`${heroSlide.title}-${index}`}
+              type="button"
+              className={activeSlide === index ? "active" : ""}
+              onClick={() => setActiveSlide(index)}
+              aria-label={`${index + 1}. kampanyayı göster`}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="market-benefits">
+        <div>
+          <ShieldCheck size={18} />
+          <div>
+            <strong>Yetkili bayi fiyatı</strong>
+            <span>Liste ve toptan fiyatlar bir arada</span>
           </div>
         </div>
-        <div className="market-hero-card">
+        <div>
+          <Truck size={18} />
           <div>
-            <strong>Bugünün öne çıkan fırsatı</strong>
-            <h3>Yüksek stoklu hızlı dönen toptan ürünler</h3>
-            <p>Temizlik, ofis, elektronik ve bebek kategorilerinde bayi alış fiyatı avantajı.</p>
+            <strong>Aynı gün sevkiyat</strong>
+            <span>Hazır stoktan hızlı çıkış</span>
           </div>
-          <img src="https://images.unsplash.com/photo-1556740749-887f6717d7e4?w=700&q=80" alt="Kampanya" />
+        </div>
+        <div>
+          <Store size={18} />
+          <div>
+            <strong>Çok kanallı satış</strong>
+            <span>Mağaza ve pazaryeri uyumlu katalog</span>
+          </div>
         </div>
       </section>
 
@@ -71,7 +140,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="home-container">
+      <div className="home-container" id="featured-products">
         <aside className="sidebar-categories">
           <h3>Kategoriler</h3>
           <ul>
@@ -92,7 +161,12 @@ export default function HomePage() {
           </div>
 
           <div className="product-grid">
-            {filteredProducts.map((product) => (
+            {filteredProducts.length === 0 ? (
+              <div className="empty-results">
+                <strong>Sonuç bulunamadı</strong>
+                <span>Aramanızı farklı bir ürün, marka veya kategoriyle tekrar deneyin.</span>
+              </div>
+            ) : filteredProducts.map((product) => (
               <article key={product.id} className="product-card">
                 <div className="product-card-top">
                   <span className="product-chip">{product.channel}</span>

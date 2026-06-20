@@ -1,9 +1,10 @@
-import { collection, doc, getDocs, setDoc, updateDoc, writeBatch, serverTimestamp } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc, writeBatch, serverTimestamp } from "firebase/firestore";
 import { db } from "../firebase";
 import { initialOrders } from "./mockData";
 
 const COLLECTION_NAME = "orders";
 const LOCAL_ORDERS_KEY = "local-orders";
+const LOCAL_DELETED_ORDERS_KEY = "local-deleted-orders";
 
 const isBrowser = typeof window !== "undefined";
 
@@ -40,9 +41,23 @@ const readLocalOrders = () => {
   }
 };
 
+const readDeletedOrderIds = () => {
+  if (!isBrowser) return [];
+  try {
+    return JSON.parse(window.localStorage.getItem(LOCAL_DELETED_ORDERS_KEY) || "[]");
+  } catch {
+    return [];
+  }
+};
+
 const writeLocalOrders = (orders) => {
   if (!isBrowser) return;
   window.localStorage.setItem(LOCAL_ORDERS_KEY, JSON.stringify(orders));
+};
+
+const writeDeletedOrderIds = (ids) => {
+  if (!isBrowser) return;
+  window.localStorage.setItem(LOCAL_DELETED_ORDERS_KEY, JSON.stringify(ids));
 };
 
 const upsertLocalOrder = (order) => {
@@ -50,10 +65,34 @@ const upsertLocalOrder = (order) => {
   writeLocalOrders([...current.filter((item) => item.id !== order.id), order]);
 };
 
+const removeLocalOrder = (id) => {
+  const current = readLocalOrders().map((item) => normalizeOrder(item, item.id));
+  writeLocalOrders(current.filter((item) => item.id !== id));
+};
+
+const clearDeletedOrderFlag = (id) => {
+  writeDeletedOrderIds(readDeletedOrderIds().filter((item) => item !== id));
+};
+
+const markOrderDeletedLocally = (id) => {
+  const deletedIds = readDeletedOrderIds();
+  if (!deletedIds.includes(id)) {
+    writeDeletedOrderIds([...deletedIds, id]);
+  }
+  removeLocalOrder(id);
+};
+
 const mergeOrders = (remoteOrders) => {
   const map = new Map();
-  remoteOrders.forEach((order) => map.set(order.id, order));
-  readLocalOrders().map((item) => normalizeOrder(item, item.id)).forEach((order) => map.set(order.id, order));
+  const deletedIds = new Set(readDeletedOrderIds());
+  remoteOrders.forEach((order) => {
+    if (!deletedIds.has(order.id)) map.set(order.id, order);
+  });
+  readLocalOrders()
+    .map((item) => normalizeOrder(item, item.id))
+    .forEach((order) => {
+      if (!deletedIds.has(order.id)) map.set(order.id, order);
+    });
   return Array.from(map.values()).sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
 };
 
@@ -114,10 +153,12 @@ export const createOrder = async (orderData) => {
       ...finalOrder,
       createdAt: serverTimestamp(),
     });
+    clearDeletedOrderFlag(finalOrder.id);
     return finalOrder;
   } catch (error) {
     console.error("Error creating order:", error);
     upsertLocalOrder(finalOrder);
+    clearDeletedOrderFlag(finalOrder.id);
     return finalOrder;
   }
 };
@@ -151,6 +192,15 @@ export const restoreOrder = async (id) => {
     isArchived: false,
     archivedAt: null,
   });
+};
+
+export const deleteOrder = async (id) => {
+  try {
+    await deleteDoc(doc(db, COLLECTION_NAME, id));
+  } catch (error) {
+    console.error("Error deleting order:", error);
+  }
+  markOrderDeletedLocally(id);
 };
 
 export const seedOrders = async () => {

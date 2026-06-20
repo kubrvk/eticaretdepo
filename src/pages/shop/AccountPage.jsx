@@ -145,11 +145,11 @@ export default function AccountPage() {
                   <strong>{order.id}</strong>
                   <span>{order.orderType} • {order.channel}</span>
                 </div>
-                <div>
+                <div className="account-order-total">
                   <strong>{Number(order.total).toLocaleString("tr-TR")} TL</strong>
                   <span>{order.status}</span>
                 </div>
-                <div>
+                <div className="account-order-count">
                   <strong>{order.items} ürün</strong>
                   <span>{order.shipmentStatus}</span>
                 </div>
