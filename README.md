@@ -1,13 +1,13 @@
 # ETicaretDepo
 
-<img align="left" width="40%" src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret1.PNG"/>
+<img align="left" width="40%" src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret12.PNG"/>
 <h3> 
   <a href="https://eticaretdepo.web.app">
-    <img src="https://img.shields.io/badge/Live Demo: https://eticaretdepo.web.app-042621?style=flat-square&logo=googlechrome&logoColor=white" height="25"/> 
+    <img src="https://img.shields.io/badge/Live Demo: https://eticaretdepo.web.app-042621?style=flat-square&logo=googlechrome1&logoColor=white" height="25"/> 
   </a>
 </h3>
 
-![React](https://img.shields.io/badge/React-19-20232a?style=flat-square&logo=react&logoColor=61dafb) ![Vite](https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite&logoColor=white) ![Firebase](https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-ffca28?style=flat-square&logo=firebase&logoColor=black) ![Status](https://img.shields.io/badge/status-active-success?style=flat-square) 
+![](https://img.shields.io/badge/Web_App-09090b?style=) ![](https://img.shields.io/badge/Management-1e3a8a?style=) ![](https://img.shields.io/badge/Dashboard-047857?style=) ![React](https://img.shields.io/badge/React_18-61DAFB?style=logo=react&logoColor=black)  ![Firebase](https://img.shields.io/badge/Firebase-FFCA28?style=for-the-badges&logo=firebas1&logoColor=black)  ![Status](https://img.shields.io/badge/Status-Shipped-success?style=for-the-badges) 
 <br>
 
 ETicaretDepo is a React and Firebase based B2B-oriented e-commerce and warehouse management project. It combines a storefront, dealer account flow, product catalog management, and an admin-side order operations panel inside a single application.
@@ -18,7 +18,7 @@ The project is built around a distributor / dealer workflow rather than a simple
 <br/>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret2.PNG" width="24%"/><img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret3.PNG" width="24%"/><img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret4.PNG" width="24%"/><img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret5.PNG" width="24%"/>
+<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret4.PNG" width="31%"/>  <img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret3.PNG" width="34%"/>
 </p>
 
 ---
@@ -38,7 +38,6 @@ The project is built around a distributor / dealer workflow rather than a simple
 ## 🚀 Core Features
 
 ### 1. Storefront & Dealer Accounts
-![image](https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret6.PNG)
 
 - **Public Catalog:** Browse categories, subcategories, and detailed product galleries.
 - **Dealer Flow:** Registration system for dealers. Authenticated users benefit from account-driven checkout without repetitive forms.
@@ -94,19 +93,15 @@ npm run preview
 ## 📸 Application Gallery
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret8.PNG" width="24%"/>
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret9.PNG" width="24%"/>
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret10.PNG" width="24%"/>
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret11.PNG" width="24%"/>
-</p>
-<p align="center">
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret12.PNG" width="90%"/>
+<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret8.PNG" width="44%"/>
+<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret9.PNG" width="44%"/>
+
 </p>
 
 ---
 
 ## 👤 Developer
 
-**Kubrik**
+**Kubrick**
 
 [GitHub](https://github.com/kubrvk)
