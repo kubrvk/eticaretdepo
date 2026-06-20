@@ -1,14 +1,20 @@
-# Barcode Tracking (E-Ticaret Depo)
+# ETicaretDepo
 
 <img align="left" width="40%" src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret1.PNG"/>
-<h3> <a href="https://eticaretdepo.web.app"><img src="https://img.shields.io/badge/Live Demo: https://eticaretdepo.web.app-042621?style=flat-square&logo=googlechrome&logoColor=white" height="25"/> </a></h3>
+<h3> 
+  <a href="https://eticaretdepo.web.app">
+    <img src="https://img.shields.io/badge/Live Demo: https://eticaretdepo.web.app-042621?style=flat-square&logo=googlechrome&logoColor=white" height="25"/> 
+  </a>
+</h3>
 
-![](https://img.shields.io/badge/Web-33488d?style=flat-square) ![](https://img.shields.io/badge/AdminPanel-3c4293?style=flat-square) ![React](https://img.shields.io/badge/React-00599C?style=flat-square&logo=react&logoColor=white) ![](https://img.shields.io/badge/Platform-Web_|_Android-0E1128?style=flat-square) 
+![React](https://img.shields.io/badge/React-19-20232a?style=flat-square&logo=react&logoColor=61dafb) ![Vite](https://img.shields.io/badge/Vite-6-646cff?style=flat-square&logo=vite&logoColor=white) ![Firebase](https://img.shields.io/badge/Firebase-Auth%20%2B%20Firestore-ffca28?style=flat-square&logo=firebase&logoColor=black) ![Status](https://img.shields.io/badge/status-active-success?style=flat-square) 
 <br>
-Barcode Tracking is a simple and practical product and stock management app built with React Native for both Android and web platforms. 
 
-The app helps scan barcodes, save product information, manage, and track stock easily. It provides a seamless experience for controlling inventory from a mobile device or a comprehensive web admin panel.
+ETicaretDepo is a React and Firebase based B2B-oriented e-commerce and warehouse management project. It combines a storefront, dealer account flow, product catalog management, and an admin-side order operations panel inside a single application.
+
+The project is built around a distributor / dealer workflow rather than a simple consumer storefront. Products carry both retail and dealer pricing, orders move through a staged operational pipeline, and account data is reused during checkout instead of collecting delivery details repeatedly on every order.
 <br clear="left"/>
+
 <br/>
 
 <p align="center">
@@ -17,37 +23,75 @@ The app helps scan barcodes, save product information, manage, and track stock e
 
 ---
 
-## Technical Details:
+## 🛠️ Technical Details
 
 | Layer | Technology |
 |---|---|
-| Core Framework | React / React Native |
-| Primary Language | JavaScript / TypeScript |
-| Key Features | Barcode Scanning, Stock Management, Real-time tracking |
-| Platforms | Web (Admin Panel) / Android |
-| Hosting / Deployment | Firebase Hosting |
+| **Core Framework** | React 19 / Vite 6 |
+| **Authentication** | Firebase Auth |
+| **Database** | Firestore (with LocalStorage fallback) |
+| **State Management**| Zustand |
+| **Routing** | React Router |
 
 ---
 
-## Core Features:
+## 🚀 Core Features
 
-### 1. Stock Management & Tracking:
+### 1. Storefront & Dealer Accounts
 ![image](https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret6.PNG)
 
-The central focus of the app is managing your inventory effectively and quickly.
-- **Barcode Integration:** Scan product barcodes instantly using the device's camera to pull up item records without manual searching.
-- **Add/Edit Products:** Easily register new items, edit descriptions, upload images, and update existing stock levels.
+- **Public Catalog:** Browse categories, subcategories, and detailed product galleries.
+- **Dealer Flow:** Registration system for dealers. Authenticated users benefit from account-driven checkout without repetitive forms.
+- **Pricing Model:** Products carry both retail and wholesale/dealer pricing structures along with minimum order quantities.
 
-### 2. Admin Panel & Web Dashboard:
+### 2. Admin & Warehouse Operations
 ![image](https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret7.PNG)
 
-The app includes a fully responsive web dashboard for overarching management.
-- Get a broad overview of total stock, recent activities, and product categories.
-- Monitor inventory changes in real-time from a desktop browser.
+- **Product Management:** Full control over catalog fields, stock levels, reserved stock, thresholds, supplier metadata, and multiple image galleries.
+- **Order Pipeline:** Orders are not just a simple status; they move through realistic operational stages:
+  <br> `Pending Approval ➔ Approved ➔ Payment Received ➔ Sent to Warehouse ➔ Preparing ➔ Packed ➔ Shipped ➔ Delivered`
 
 ---
 
-## Application Gallery
+## 🔐 Demo Access
+
+A seeded demo admin account is available for testing the admin panel:
+- **Email:** `admin@eticaretdepo.com`
+- **Password:** `admin1234`
+
+---
+
+## 💻 Installation & Development
+
+To run the project locally, follow these steps:
+
+```bash
+# Clone the repository
+git clone https://github.com/kubrvk/eticaretdepo.git
+
+# Navigate into the directory
+cd eticaretdepo
+
+# Install dependencies
+npm install
+
+# Start the local development server
+npm run dev
+```
+
+**Production Build:**
+```bash
+# Create a production build
+npm run build
+
+# Preview the production build locally
+npm run preview
+```
+*The Vite configuration serves the app on `127.0.0.1`, and production output is generated in the `dist/` directory.*
+
+---
+
+## 📸 Application Gallery
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret8.PNG" width="24%"/>
@@ -61,7 +105,7 @@ The app includes a fully responsive web dashboard for overarching management.
 
 ---
 
-## Developer
+## 👤 Developer
 
 **Kubrik**
 
