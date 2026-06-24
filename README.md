@@ -1,6 +1,6 @@
 # ETicaretDepo
 
-<img align="left" width="40%" src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret12.PNG"/>
+<img align="left" width="40%" src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret12.jpg"/>
 <h3> 
   <a href="https://eticaretdepo.web.app">
     <img src="https://img.shields.io/badge/Live Demo: https://eticaretdepo.web.app-042621?style=flat-square&logo=googlechrome1&logoColor=white" height="25"/> 
@@ -16,7 +16,7 @@ The project is built around a distributor / dealer workflow rather than a simple
 <br clear="left"/>
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret4.PNG" width="31%"/>  <img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret3.PNG" width="34%"/>
+<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret4.jpg" width="31%"/>  <img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret3.jpg" width="34%"/>
 </p>
 
 ---
@@ -42,7 +42,7 @@ The project is built around a distributor / dealer workflow rather than a simple
 - **Pricing Model:** Products carry both retail and wholesale/dealer pricing structures along with minimum order quantities.
 
 ### 2. Admin & Warehouse Operations
-![image](https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret7.PNG)
+![image](https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret7.jpg)
 
 - **Product Management:** Full control over catalog fields, stock levels, reserved stock, thresholds, supplier metadata, and multiple image galleries.
 - **Order Pipeline:** Orders are not just a simple status; they move through realistic operational stages:
@@ -91,8 +91,8 @@ npm run preview
 ## 📸 Application Gallery
 
 <p align="center">
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret8.PNG" width="44%"/>
-<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret9.PNG" width="44%"/>
+<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret8.jpg" width="44%"/>
+<img src="https://raw.githubusercontent.com/kubrvk/portfolio/main/img/galeri/eticaret9.jpg" width="44%"/>
 
 </p>
 
